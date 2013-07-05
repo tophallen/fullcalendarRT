@@ -1,7 +1,7 @@
 fullcalendarRT
 ==============
 
-fullcalendarRT is a real-time version of Adam Shaw's fullcalendar
+fullcalendarRT is a real-time version of Adam Shaw's fullcalendar (https://github.com/arshaw/fullcalendar)
 with signalR as the real-time framework, built on a MVC site
 
 ### Features
