@@ -74,6 +74,12 @@ var viewModel = function () {
         temp1.allDay = event.allDay;
         temp1.className = event.className;
         $('#calendar').fullCalendar('updateEvent', temp1);
+        try {
+            if (temp1.id == self.theItem().id) {
+                self.whileChanged(temp1);
+            }
+        } catch (e) {
+        }
         self.eventList.push({
             start: temp1.start,
             end: temp1.end,
@@ -89,6 +95,34 @@ var viewModel = function () {
         self.eventList.remove(function (data) { return data.id == event.id; });
         $("#calendar").fullCalendar('removeEvents', function (data) { return data.id == event.id; })
     }
+
+    self.whileChanged = function (event) {
+        self.showError("");
+        self.theItem(event);
+        self.userName(event.title);
+        self.shiftType(event.className[0]);
+        self.shiftStartTime(self.htmlInputDate(event.start));
+        self.selectedTeam(event.description);
+        try {
+            self.allDay(event.allDay);
+        } catch (e) {
+        }
+        try {
+            self.shiftEndTime(self.htmlInputDate(event.end));
+        } catch (e) {
+            // no end date, we can live with that ... for now
+        }
+        self.eventList.remove(function (data) { return data.id = event.id; });
+        self.eventList.push({
+            start: event.start,
+            end: event.end,
+            id: event.id,
+            allDay: event.allDay,
+            className: [event.className],
+            description: event.description,
+            title: event.title
+        });
+    };
 
     self.checkTimeParsing = function (i) {
         if (i < 10) {
