@@ -146,7 +146,6 @@ var viewModel = function () {
     }
 
     self.submitEvent = function () {
-        //to be implemented
         var theItem = {
             start: self.localEventDatePreventShift(self.shiftStartTime()),
             end: self.localEventDatePreventShift(self.shiftEndTime()),
@@ -256,14 +255,6 @@ var viewModel = function () {
                         start: start,
                         end: end
                     });
-                } else {
-                    setTimeout(function () {
-                        self.event.server.getMoreEvents({
-                            team: self.groupName(),
-                            start: start,
-                            end: end
-                        });
-                    }, 600);
                 }
             },
             eventDragStart: function (event, jsEvent, ui, view) {
@@ -409,7 +400,11 @@ var viewModel = function () {
         self.event.client.newEvent = self.pushEvents;
         self.event.client.modifyEvent = self.pushModifyEvent;
         self.event.client.removeEvent = self.pushRemoveEvent;
-        $.connection.hub.start();
+        $.connection.hub.start().done(function () {
+            self.groupNameGetter();
+        }).fail(function (error) {
+            console.log(error);
+        });
     }();
 
     self.groupName = ko.observable("");
@@ -427,9 +422,10 @@ var viewModel = function () {
             self.event.server.joinGroup(gn).done(function () {
                 self.isLive(true);
                 console.log("Joined group: " + gn);
+                $('#calendar').fullCalendar('refetchEvents');
             }).fail(function (error) {
                 console.log("There was something wrong with joining, try again or contact help.");
             });
         }, 500);
-    }();
+    };
 };
