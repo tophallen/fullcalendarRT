@@ -1,0 +1,20 @@
+﻿.Coverage {
+    background-color: #3795fa;
+    border-color:#47a5fb;
+}
+.Scheduled {
+    background-color: #b01700;
+    border-color:#b92710;
+}
+.Vacation {
+    background-color:#007029;
+    border-color:#108039;
+}
+.Training {
+    background-color:#ffe033;
+    border-color:#fff043;
+}
+.Meeting {
+    background-color:#5802ad;
+    border-color:#6812bd;
+}

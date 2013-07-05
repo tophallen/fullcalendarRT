@@ -1,0 +1,43 @@
+﻿@{
+    ViewBag.Title = "Calendar.";
+    var typeShift = new List<string> { "Coverage", "Scheduled", "Vacation", "Training", "Meeting" };
+}
+<section>
+<div id='calendar'></div>
+</section>
+<div id="dialogNewEvent">
+<div class="newEvent">
+    <span style="font-size:1.5em; font-stretch:extra-condensed; font-weight:100;" data-bind="text: dialogTitle"></span>
+    <br />
+    <span class="error" data-bind="text: showError"></span><br />
+    @{@Html.DropDownList("team", new SelectList(ViewBag.Teams), new { data_bind = "value: selectedTeam, visible: showTeamOption" })}
+    <input type="text" name="userName" id="userName" placeholder="John the smitty Smith" data-bind="value: userName, valueUpdate: 'afterkeydown'" />
+    <br />
+    Shift Type: @Html.DropDownList("shiftType", new SelectList(typeShift, "Scheduled"), new { data_bind = "value: shiftType" })
+    &nbsp; All Day Event? <input type="checkbox" id="allDay" name="allDay" data-bind="checked: allDay" />
+    <br />
+    Start: <input type="datetime-local" name="startTime" id="startTime" data-bind="value: shiftStartTime" />
+    <br />
+    End: &nbsp <input type="datetime-local" name="endTime" id="endTime" data-bind="value: shiftEndTime" />
+    <br />
+    <input type="button" value="Add" id="addEvent" name="addEvent" data-bind="click: submitEvent, attr: { value: addButtonValue }" />
+    <input type="button" value="Cancel" id="cancelEvent" name="cancelEvent" data-bind="click: cancelEvent" />
+    <input type="button" value="Delete" id="deleteEvent" name="deleteEvent" data-bind="click: deleteEvent, visible: showDelete" />
+</div>
+</div>
+<div id="pickTeam">
+    @{@Html.DropDownList("team", new SelectList(ViewBag.Teams), new { data_bind = "value: redirectTeam" })}
+</div>
+
+@section scripts {
+    @Scripts.Render("~/js/jquery")
+    @Scripts.Render("~/js/knockout")
+    @Scripts.Render("~/js/signalr")
+<script src="~/push/hubs"></script>
+    @Scripts.Render("~/js/calendar")
+}
+@Scripts.Render("~/js/data")
+<script>
+    $(document).ready(
+        ko.applyBindings(new viewModel()));
+</script>
