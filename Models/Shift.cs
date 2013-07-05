@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Calendar.Data
+namespace Schedule.Web.Models
 {
     public class Shift : IShift
     {

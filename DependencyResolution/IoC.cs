@@ -16,7 +16,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-using Calendar.Data;
+using Schedule.Web.Models;
 using Schedule.Web.Infrastructure;
 using StructureMap;
 namespace Schedule.Web.DependencyResolution {

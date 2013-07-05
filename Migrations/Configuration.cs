@@ -1,6 +1,6 @@
 namespace Schedule.Web.Migrations
 {
-    using Calendar.Data;
+    using Schedule.Web.Models;
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
@@ -19,7 +19,7 @@ namespace Schedule.Web.Migrations
             context.Shifts.AddOrUpdate(
                 new Shift
                 {
-                    TeamName = "test",
+                    TeamName = "mos",
                     CoverageNeeded = false,
                     CoveringOtherShift = false,
                     EmployeeName = "Chris Allen",

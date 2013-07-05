@@ -5,7 +5,7 @@ using System.Web;
 using Microsoft.AspNet.SignalR;
 using System.Threading.Tasks;
 using Schedule.Web.Models;
-using Calendar.Data;
+using Schedule.Web.Models;
 
 namespace Schedule.Web.Hubs
 {
@@ -27,7 +27,6 @@ namespace Schedule.Web.Hubs
                 data.end = data.end.Value.ToUniversalTime();
             if (data.description == null)
                 data.description = "all";
-            //handle data to db here
             var obj = CalendarEvent.ToDatabase(data);
             var old = _db.Shifts.Single(c => c.Id == obj.Id);
             _db.Modify(obj as Shift, old);
@@ -50,7 +49,6 @@ namespace Schedule.Web.Hubs
             var data = theEvent;
             if (data.description == null)
                 data.description = "all";
-            //handle data to db here
             var obj = CalendarEvent.ToDatabase(data);
             _db.Add(obj as Shift);
             _db.Save();
@@ -107,28 +105,6 @@ namespace Schedule.Web.Hubs
         {
             var id = Context.ConnectionId;
             await Groups.Add(id, Group);
-            //try
-            //{
-            //    IQueryable<Shift> items;
-            //    if (Group != "all")
-            //    {
-            //        items = _db.Shifts.Where(c => c.TeamName == Group 
-            //            && c.StartTime.Month == DateTime.Now.Month);
-            //    }
-            //    else
-            //    {
-            //        items = _db.Shifts.Where(c => c.StartTime.Month == DateTime.Now.Month);
-            //    }
-            //    foreach (var item in items)
-            //    {
-            //        var data = CalendarEvent.FromDatabase(item);
-            //        Clients.Caller.newEvent(data);
-            //    }
-            //}
-            //catch (Exception)
-            //{
-
-            //}
         }
 
         async public Task LeaveGroup(string Group)

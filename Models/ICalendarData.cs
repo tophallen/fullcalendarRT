@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Calendar.Data
+namespace Schedule.Web.Models
 {
     public interface ICalendarRepository
     {

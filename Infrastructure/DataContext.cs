@@ -1,4 +1,4 @@
-﻿using Calendar.Data;
+﻿using Schedule.Web.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
