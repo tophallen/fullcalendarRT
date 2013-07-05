@@ -26,7 +26,7 @@ I built this as a team calendar at work, we just needed a simple scheduler, and 
 for different teams, it is just what we wanted.
 
 I have a demo set up for this
-- http://calendar.tophallen.com [cal]
+- http://calendar.tophallen.com
 
 [cal]: http://calendar.tophallen.com
 
