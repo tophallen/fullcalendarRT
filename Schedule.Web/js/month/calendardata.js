@@ -112,16 +112,6 @@ var viewModel = function () {
         } catch (e) {
             // no end date, we can live with that ... for now
         }
-        self.eventList.remove(function (data) { return data.id = event.id; });
-        self.eventList.push({
-            start: event.start,
-            end: event.end,
-            id: event.id,
-            allDay: event.allDay,
-            className: [event.className],
-            description: event.description,
-            title: event.title
-        });
     };
 
     self.checkTimeParsing = function (i) {
