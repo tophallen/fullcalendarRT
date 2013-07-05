@@ -165,7 +165,6 @@ var viewModel = function () {
         temper.className = [self.shiftType()];
         if (self.showTeamOption()) { temper.description = self.selectedTeam(); }
         else { temper.description = self.groupName(); }
-        console.log(self.groupName());
         temper.title = self.userName();
         if (self.userName().length <= 1) { self.showError("What's the name of it?"); }
         else {
@@ -247,11 +246,29 @@ var viewModel = function () {
                     });
                 }
             },
+            eventResize: function (event, dayDelta, minuteDelta, jsEvent, ui, view) {
+                var temper = self.eventList.remove(function (data) {
+                    return data.id == event.id;
+                });
+                var endTemp = self.dropDeltaShift(dayDelta, minuteDelta, event.end);
+                self.eventList.push(temper[0]);
+                self.event.server.modifyEvent({
+                    id: event.id,
+                    title: event.title,
+                    allDay: event.allDay,
+                    start: event.start,
+                    end: event.end,
+                    className: event.className,
+                    description: event.description
+                }).done(function () {
+                }).fail(function (error) {
+                    revertFunc();
+                });
+            },
             eventDragStart: function (event, jsEvent, ui, view) {
                 //possibly capture the start of a drag, if needed
             },
             eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
-                console.log(self.eventList());
                 var temper = self.eventList.remove(function (data) {
                     return data.id == event.id;
                 });
