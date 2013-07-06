@@ -1,5 +1,22 @@
 ﻿///<reference path="../_references.js" />
 /*********************************/
+/*        Browser Check          */
+/*********************************/
+var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+// At least Safari 3+: "[object HTMLElementConstructor]"
+var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+var isIE = /*@cc_on!@*/false || document.documentMode;   // At least IE6
+if (!isChrome) {
+    $("#endDate").attr('data-bind', 'value: legacyEndDate');
+    $("#endTime").attr('data-bind', 'value: legacyEndTime');
+    $("#startDate").attr('data-bind', 'value: legacyStartDate');
+    $("#startTime").attr('data-bind', 'value: legacyStartTime');
+}
+
+/*********************************/
 /*      Knockout ViewModel       */
 /*********************************/
 var viewModel = function () {
@@ -56,12 +73,19 @@ var viewModel = function () {
     self.eventList = ko.observableArray([]);
     self.selectedNotes = ko.observable();
 
+    //for IE and Firefox
+    self.legacyStartDate = ko.observable();
+    self.legacyStartTime = ko.observable();
+    self.legacyEndDate = ko.observable();
+    self.legacyEndTime = ko.observable();
+
     /*********************************/
     /*        Event Handling         */
     /*********************************/
     self.pushEvents = function (event) {
-            self.eventList.push(event);
-            $('#calendar').fullCalendar('renderEvent', event, false);
+        self.logger(event, "info");
+        self.eventList.push(event);
+        $('#calendar').fullCalendar('renderEvent', event, false);
     };
 
     self.pushModifyEvent = function (event) {
@@ -108,7 +132,12 @@ var viewModel = function () {
         self.theItem(event);
         self.userName(event.title);
         self.shiftType(event.className[0]);
-        self.shiftStartTime(self.htmlInputDate(event.start));
+        if (isChrome) {
+            self.shiftStartTime(self.htmlInputDate(event.start));
+        } else {
+            self.legacyStartDate(self.dateSplitter(event.start));
+            self.legacyStartTime(self.timeSplitter(event.start));
+        }
         self.selectedTeam(event.description);
         self.selectedNotes(event.note);
         try {
@@ -116,16 +145,30 @@ var viewModel = function () {
         } catch (e) {
         }
         try {
-            self.shiftEndTime(self.htmlInputDate(event.end));
+            if (isChrome) {
+                self.shiftEndTime(self.htmlInputDate(event.end));
+            } else {
+                self.legacyEndDate(self.dateSplitter(event.end));
+                self.legacyEndTime(self.timeSplitter(event.end));
+            }
         } catch (e) {
             // no end date, we can live with that ... for now
         }
     };
 
     self.submitEvent = function () {
+        var tempstart;
+        var tempend;
+        if (isChrome) {
+            tempstart = self.localEventDatePreventShift(self.shiftStartTime());
+            tempend = self.localEventDatePreventShift(self.shiftEndTime());
+        } else {
+            tempstart = self.dateCombiner(self.legacyStartDate(), self.legacyStartTime());
+            tempend = self.dateCombiner(self.legacyEndDate(), self.legacyEndTime());
+        }
         var theItem = {
-            start: self.localEventDatePreventShift(self.shiftStartTime()),
-            end: self.localEventDatePreventShift(self.shiftEndTime()),
+            start: tempstart,
+            end: tempend,
             allDay: self.allDay(),
             className: [self.shiftType()],
             description: "",
@@ -146,8 +189,8 @@ var viewModel = function () {
             }
             else { temper = temper[0]; }
         } catch (e) { temper = { start: "", end: "", id: "", allDay: "", className: "", description: "", title: "" }; }
-        temper.start = self.localEventDatePreventShift(self.shiftStartTime());
-        temper.end = self.localEventDatePreventShift(self.shiftEndTime());
+        temper.start = tempstart;
+        temper.end = tempend;
         temper.id = theItem.id;
         temper.allDay = self.allDay();
         temper.className = [self.shiftType()];
@@ -157,7 +200,7 @@ var viewModel = function () {
         temper.title = self.userName();
         if (self.userName().length <= 1) { self.showError("What's the name of it?"); }
         else {
-            if (!self.validateTimes(self.shiftStartTime(), self.shiftEndTime())) {
+            if (!self.validateTimes(tempstart, tempend)) {
                 self.showError("Your dates are a little odd...");
             } else {
                 self.showError("");
@@ -299,12 +342,19 @@ var viewModel = function () {
                     start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), 0);
                     end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1, date.getMinutes(), 0);
                 }
-                self.shiftStartTime(self.htmlInputDate(start));
-                self.shiftEndTime(self.htmlInputDate(end));
+                if (isChrome) {
+                    self.shiftStartTime(self.htmlInputDate(start));
+                    self.shiftEndTime(self.htmlInputDate(end));
+                } else {
+                    self.legacyStartDate(self.dateSplitter(start));
+                    self.legacyStartTime(self.timeSplitter(start));
+                    self.legacyEndDate(self.dateSplitter(end));
+                    self.legacyEndTime(self.timeSplitter(end));
+                }
                 self.showDelete(false);
                 self.allDay(allDay);
                 if (self.groupName() != "all") {
-                    self.selectedTeam(self.groupName().split('#'));
+                    self.selectedTeam(self.groupName().split('#')[0]);
                 }
                 self.repeatCount(getRepeats(null));
                 self.addButtonValue("Create");
@@ -316,7 +366,12 @@ var viewModel = function () {
                 self.theItem(calEvent);
                 self.userName(calEvent.title);
                 self.shiftType(calEvent.className[0]);
-                self.shiftStartTime(self.htmlInputDate(calEvent.start));
+                if (isChrome) {
+                    self.shiftStartTime(self.htmlInputDate(calEvent.start));
+                } else {
+                    self.legacyStartDate(self.dateSplitter(calEvent.start));
+                    self.legacyStartTime(self.timeSplitter(calEvent.start));
+                }
                 self.selectedNotes(calEvent.note);
                 self.selectedTeam(calEvent.description);
                 try {
@@ -324,7 +379,12 @@ var viewModel = function () {
                 } catch (e) {
                 }
                 try {
-                    self.shiftEndTime(self.htmlInputDate(calEvent.end));
+                    if (isChrome) {
+                        self.shiftEndTime(self.htmlInputDate(calEvent.end));
+                    } else {
+                        self.legacyEndDate(self.dateSplitter(calEvent.end));
+                        self.legacyEndTime(self.timeSplitter(calEvent.end));
+                    }
                 } catch (e) {
                     // no end date, we can live with that ... for now
                 }
@@ -368,6 +428,24 @@ var viewModel = function () {
         } catch (e) {
             return null;
         }
+    };
+
+    self.dateSplitter = function (date) {
+        date = new Date(date);
+        var month = date.getMonth() + 1;
+        return month + "/" + date.getDate() + "/" + date.getFullYear();
+    };
+
+    self.timeSplitter = function (date) {
+        date = new Date(date);
+        return date.getHours() + ":" + self.checkTimeParsing(date.getMinutes());
+    };
+
+    self.dateCombiner = function (date, time) {
+        var mdy = date.split('/');
+        var hm = time.split(':');
+        self.logger(new Date(mdy[2], mdy[0], mdy[1], hm[0], hm[1], 0).toDateString(), "info");
+        return new Date(mdy[2], mdy[0] - 1, mdy[1], hm[0], hm[1], 0);
     };
 
     self.localEventDateParse = function (date) {
@@ -469,7 +547,6 @@ var viewModel = function () {
         if (window.location.search.match(/debug=true/)) {
             self.enableLogging(true);
         }
-
         $.connection.hub.logging = self.enableLogging();
 
         self.event = $.connection.eventHub;
