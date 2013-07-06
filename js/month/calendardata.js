@@ -425,6 +425,7 @@ var viewModel = function () {
                 }
             }
         });
+        //Query String Checks - besides debug
     }();
 
     /*********************************/
@@ -443,8 +444,19 @@ var viewModel = function () {
                     case "log":
                         console.log(error);
                         break;
+                    case "info":
+                        if (window.console.debug) {
+                            window.console.debug(error);
+                        } else {
+                            console.info(error);
+                        }
+                        break;
                     default:
-                        console.info(error);
+                        if (window.console.debug) {
+                            window.console.debug(error);
+                        } else {
+                            Debug.write(error);
+                        }
                         break;
                 }
             } else {
@@ -454,6 +466,9 @@ var viewModel = function () {
     };
 
     self.signalHook = function () {
+        if (window.location.search.match(/debug=true/)) {
+            self.enableLogging(true);
+        }
 
         $.connection.hub.logging = self.enableLogging();
 

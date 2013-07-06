@@ -203,12 +203,14 @@ namespace Schedule.Web.Hubs
 
         async public Task JoinGroup(string Group)
         {
+            Clients.Caller.logger("Connected to Group", "info");
             var id = Context.ConnectionId;
             await Groups.Add(id, Group);
         }
 
         async public Task LeaveGroup(string Group)
         {
+            Clients.Caller.logger("Disconnected from Group", "info");
             await Groups.Remove(Context.ConnectionId, Group);
         }
 
@@ -217,11 +219,13 @@ namespace Schedule.Web.Hubs
             var path = Context.Request.Url.AbsolutePath.Split('/');
             var group = path[path.Length - 1];
             Groups.Remove(Context.ConnectionId, group);
+            Clients.Caller.logger("Disconnected from Server", "warn");
             return base.OnDisconnected();
         }
 
         public override System.Threading.Tasks.Task OnConnected()
         {
+            Clients.Caller.logger("Connected to Server", "warn");
             return base.OnConnected();
         }
     }

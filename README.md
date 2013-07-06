@@ -17,12 +17,12 @@ The data is managed and stored in the project with the Entity Framework
 and SQL, but it wouldn't be hard to impletement a NoSQL db with this.
 
 Events are pushed to groups, which you join by url.
-i.e. http://localhost/test will only show events that are part of the test group etc.
-the only exception to this rule is that http://localhost/all or http://localhost/ will
-show all events from all teams. http://localhost/ will prompt you to pick a team to view, 
+i.e. `http://localhost/test` will only show events that are part of the test group etc.
+the only exception to this rule is that `http://localhost/all` or `http://localhost/` will
+show all events from all teams. `http://localhost/` will prompt you to pick a team to view, 
 but all is one of the options.
 
-To see individual persons or event types within a team you can use http://localhost/test#foobar
+To see individual persons or event types within a team you can use `http://localhost/test#foobar`
 the hash will filter for only events on that team with the title of the hash making it easier to have
 users or specific projects within the same team
 	
@@ -33,8 +33,13 @@ I have a demo set up for this
 - [http://calendar.tophallen.com] (http://calendar.tophallen.com)
 
 to enable logging:
-in ~/js/month/calendardata.js set self.enableLogging = ko.observable(false); (it's at line 9)
-to true, this will enable logging for both signalR and viewModel, along with the C# hub
+in ~/js/month/calendardata.js set `self.enableLogging = ko.observable(true);` (it's at line 9) or you can
+type `http://hostname/?debug=true` to override the setting in the js file
+to true, this will enable logging for both signalR and viewModel, along with the C# hub and the controllers
+to disable logging set this to false
+
+If you use this in a production environment, you will want to change `EnableDetailedErrors = false` 
+in App_Start\PushConfig for the hub configuration
 
 You can get this project up and running [http://github.com/tophallen/fullcalendarRT/wiki/Getting-Started] (http://github.com/tophallen/fullcalendarRT/wiki/Getting-Started)
 
