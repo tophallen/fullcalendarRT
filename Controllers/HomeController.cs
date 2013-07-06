@@ -21,14 +21,23 @@ namespace Schedule.Web.Controllers
 
         public ActionResult Index(string id = "all")
         {
-            var temp = _db.Shifts;
+            IQueryable<Shift> temp;
             List<string> theList = new List<string>();
-            foreach (var item in temp)
+            try
             {
-                if (!theList.Contains(item.TeamName))
+                temp = _db.Shifts;
+                foreach (var item in temp)
                 {
-                    theList.Add(item.TeamName);
+                    if (!theList.Contains(item.TeamName))
+                    {
+                        theList.Add(item.TeamName);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                var context = GlobalHost.ConnectionManager.GetHubContext<EventHub>();
+                context.Clients.All.logger(e.Message, "error");
             }
             if (!theList.Contains("all"))
             {

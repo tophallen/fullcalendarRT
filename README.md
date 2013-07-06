@@ -30,11 +30,11 @@ I built this as a team calendar at work, we just needed a simple scheduler, and 
 for different teams, it is just what we wanted.
 
 I have a demo set up for this
-- http://calendar.tophallen.com
+- [http://calendar.tophallen.com] (http://calendar.tophallen.com)
 
 to enable logging:
 in ~/js/month/calendardata.js set self.enableLogging = ko.observable(false); (it's at line 9)
 to true, this will enable logging for both signalR and viewModel, along with the C# hub
 
-[cal]: http://calendar.tophallen.com
+You can get this project up and running [http://github.com/tophallen/fullcalendarRT/wiki/Getting-Started] (http://github.com/tophallen/fullcalendarRT/wiki/Getting-Started)
 

@@ -276,6 +276,7 @@ var viewModel = function () {
                     note: event.note
                 }).done(function () {
                 }).fail(function (error) {
+                    self.logger("Unable to persist the change", "warning");
                     revertFunc();
                 });
             },
@@ -443,7 +444,7 @@ var viewModel = function () {
                         console.log(error);
                         break;
                     default:
-                        console.log(error);
+                        console.info(error);
                         break;
                 }
             } else {
