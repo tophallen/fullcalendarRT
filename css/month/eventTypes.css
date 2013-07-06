@@ -19,3 +19,7 @@
     background-color:#5802ad;
     border-color:#6812bd;
 }
+
+.fc-event-note {
+    font-style:italic;
+}

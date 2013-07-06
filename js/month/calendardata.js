@@ -122,27 +122,6 @@ var viewModel = function () {
         }
     };
 
-    self.checkTimeParsing = function (i) {
-        if (i < 10) {
-            i = "0" + i;
-        }
-        return i;
-    }
-
-    function getRepeats(event) {
-        var count = 1;
-        for (var i = 0; i < self.eventList().length; i++) {
-            try {
-                if (self.eventList()[i].id == event.id && typeof self.eventList()[i].id !== 'undefined') {
-                    count++;
-                }
-            } catch (e) {
-            }
-        }
-        if (count > 1) { count--; }
-        return count;
-    }
-
     self.submitEvent = function () {
         var theItem = {
             start: self.localEventDatePreventShift(self.shiftStartTime()),
@@ -300,6 +279,12 @@ var viewModel = function () {
                     revertFunc();
                 });
             },
+            eventRender: function (event, element, view) {
+                if ((view.name === "agendaWeek" || view.name === "agendaDay")
+                    && !event.allDay && event.note != null) {
+                    element.find('.fc-event-inner').append("<div class='fc-event-note'>" + event.note + "</div>");
+                }
+            },
             dayClick: function (date, allDay, jsEvent, view) {
                 self.showError("");
                 self.userName("");
@@ -402,6 +387,27 @@ var viewModel = function () {
         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 7,
             date.getHours(), date.getMinutes(), date.getSeconds()).toUTCString();
     };
+
+    self.checkTimeParsing = function (i) {
+        if (i < 10) {
+            i = "0" + i;
+        }
+        return i;
+    }
+
+    function getRepeats(event) {
+        var count = 1;
+        for (var i = 0; i < self.eventList().length; i++) {
+            try {
+                if (self.eventList()[i].id == event.id && typeof self.eventList()[i].id !== 'undefined') {
+                    count++;
+                }
+            } catch (e) {
+            }
+        }
+        if (count > 1) { count--; }
+        return count;
+    }
 
     self.loadWorkTypes = function () {
         $.ajax({
