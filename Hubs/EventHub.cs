@@ -35,7 +35,10 @@ namespace Schedule.Web.Hubs
             if (old.TeamName != data.description)
             {
                 Clients.Group(old.TeamName).removeEvent(CalendarEvent.FromDatabase(old));
-                Clients.Group(data.description).newEvent(data);
+                if (data.description != "all")
+                {
+                    Clients.Group(data.description).newEvent(data);
+                }
             }
             if (data.description != "all")
             {
@@ -83,11 +86,27 @@ namespace Schedule.Web.Hubs
             try
             {
                 IQueryable<Shift> items;
+                IQueryable<Shift> broadcastItems;
                 if (dateInfo.team != "all")
                 {
                     items = _db.Shifts.Where(c => c.TeamName == dateInfo.team
                         && c.StartTime >= dateInfo.start
                         && c.StartTime <= dateInfo.end);
+                    try
+                    {
+                        broadcastItems = _db.Shifts.Where(c => c.TeamName == "all"
+                            && c.StartTime >= dateInfo.start
+                            && c.StartTime <= dateInfo.end);
+                        foreach (var item in broadcastItems)
+                        {
+                            var data = CalendarEvent.FromDatabase(item);
+                            Clients.Caller.newEvent(data);
+                        }
+                    }
+                    catch (Exception)
+                    {
+
+                    }
                 }
                 else
                 {
