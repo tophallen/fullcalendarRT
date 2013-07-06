@@ -30,7 +30,10 @@ namespace Schedule.Web.Controllers
                     theList.Add(item.TeamName);
                 }
             }
-            theList.Add("all");
+            if (!theList.Contains("all"))
+            {
+                theList.Add("all");
+            }
             ViewBag.Teams = theList;
             return View();
         }

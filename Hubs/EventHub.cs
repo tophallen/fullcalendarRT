@@ -34,7 +34,14 @@ namespace Schedule.Web.Hubs
             data = CalendarEvent.FromDatabase(obj);
             if (old.TeamName != data.description)
             {
-                Clients.Group(old.TeamName).removeEvent(CalendarEvent.FromDatabase(old));
+                if (old.TeamName == "all")
+                {
+                    Clients.All.removeEvent(old);
+                }
+                else
+                {
+                    Clients.Group(old.TeamName).removeEvent(CalendarEvent.FromDatabase(old));
+                }
                 if (data.description != "all")
                 {
                     Clients.Group(data.description).newEvent(data);
