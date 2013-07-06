@@ -21,6 +21,10 @@ i.e. http://localhost/test will only show events that are part of the test group
 the only exception to this rule is that http://localhost/all or http://localhost/ will
 show all events from all teams. http://localhost/ will prompt you to pick a team to view, 
 but all is one of the options.
+
+To see individual persons or event types within a team you can use http://localhost/test#foobar
+the hash will filter for only events on that team with the title of the hash making it easier to have
+users or specific projects within the same team
 	
 I built this as a team calendar at work, we just needed a simple scheduler, and with the way it scales
 for different teams, it is just what we wanted.
@@ -28,6 +32,9 @@ for different teams, it is just what we wanted.
 I have a demo set up for this
 - http://calendar.tophallen.com
 
+to enable logging:
+in ~/js/month/calendardata.js set self.enableLogging = ko.observable(false); (it's at line 9)
+to true, this will enable logging for both signalR and viewModel, along with the C# hub
+
 [cal]: http://calendar.tophallen.com
 
-More features and support to come.

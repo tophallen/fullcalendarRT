@@ -4,7 +4,11 @@
 /*********************************/
 var viewModel = function () {
     var self = this;
-    
+
+    // enable logging here
+    self.enableLogging = ko.observable(false);
+
+    //dialogs
     self.newEventTrigger = function () {
         $("#dialogNewEvent").dialog({
             title: "",
@@ -150,7 +154,7 @@ var viewModel = function () {
             note: self.selectedNotes()
         };
         if (self.showTeamOption()) { theItem.description = self.selectedTeam(); }
-        else { theItem.description = self.groupName(); }
+        else { theItem.description = self.groupName().split('#')[0]; }
         try {
             theItem.id = self.theItem().id;
         } catch (e) { theItem.id = 0; }
@@ -170,7 +174,7 @@ var viewModel = function () {
         temper.className = [self.shiftType()];
         temper.note = self.selectedNotes();
         if (self.showTeamOption()) { temper.description = self.selectedTeam(); }
-        else { temper.description = self.groupName(); }
+        else { temper.description = self.groupName().split('#')[0]; }
         temper.title = self.userName();
         if (self.userName().length <= 1) { self.showError("What's the name of it?"); }
         else {
@@ -314,7 +318,7 @@ var viewModel = function () {
                 self.showDelete(false);
                 self.allDay(allDay);
                 if (self.groupName() != "all") {
-                    self.selectedTeam(self.groupName());
+                    self.selectedTeam(self.groupName().split('#'));
                 }
                 self.repeatCount(getRepeats(null));
                 self.addButtonValue("Create");
@@ -419,24 +423,49 @@ var viewModel = function () {
     /*********************************/
     /*      SignalR Initializer      */
     /*********************************/
+    self.logger = function (error, errorType) {
+        if (self.enableLogging()) {
+            if (typeof errorType != 'undefined' || errorType != "") {
+                switch (errorType) {
+                    case "error":
+                        console.error(error);
+                        break;
+                    case "warning":
+                        console.warn(error);
+                        break;
+                    case "log":
+                        console.log(error);
+                        break;
+                    default:
+                        console.log(error);
+                        break;
+                }
+            } else {
+                console.error(error);
+            }
+        }
+    };
+
     self.signalHook = function () {
 
-        $.connection.hub.logging = false;
+        $.connection.hub.logging = self.enableLogging();
 
         self.event = $.connection.eventHub;
         self.event.client.newEvent = self.pushEvents;
         self.event.client.modifyEvent = self.pushModifyEvent;
         self.event.client.removeEvent = self.pushRemoveEvent;
+        self.event.client.logger = self.logger;
         $.connection.hub.start().done(function () {
             self.groupNameGetter();
         }).fail(function (error) {
-            console.log(error);
+            self.logger(error);
         });
     }();
 
     self.groupName = ko.observable("");
     self.groupNameGetter = function () {
-        var gn = window.location.pathname.replace('/', '');
+        var hash = location.hash.replace('#', '');
+        var gn = window.location.pathname.replace(/[/]/g, '');
         if (gn.length <= 1) {
             gn = "all";
             self.showTeamOption(true);
@@ -444,13 +473,33 @@ var viewModel = function () {
         } else if (gn == "all") {
             self.showTeamOption(true);
         }
-        self.groupName(gn);
-        self.event.server.joinGroup(gn).done(function () {
+        if (hash != "") {
+            self.groupName(gn + "#" + hash);
+        } else {
+            self.groupName(gn);
+        }
+        self.event.server.joinGroup(self.groupName()).done(function () {
             self.isLive(true);
-            console.log("Joined group: " + gn);
+            self.logger("Joined group: " + self.groupName());
             $('#calendar').fullCalendar('refetchEvents');
         }).fail(function (error) {
-            console.log("There was something wrong with joining, try again or contact help.");
+            self.logger("There was something wrong with joining, try again or contact help.");
         });
     };
+    self.hashGetter = function () {
+        var gn = location.hash.replace('#','');
+        self.event.server.leaveGroup(self.groupName()).done(function () {
+            if (gn == "") { self.groupName(window.location.pathname.replace(/[/]/g, '')); } else {
+                self.groupName(window.location.pathname.replace(/[/]/g, '') + "#" + gn);
+            }
+            self.event.server.joinGroup(gn).done(function () {
+                self.isLive(true);
+                self.logger("Joined group: " + self.groupName());
+                $('#calendar').fullCalendar('refetchEvents');
+            }).fail(function (error) {
+                self.logger("There was something wrong with joining, try again or contact help.");
+            });
+        }).fail(function (error) { self.logger("Failed to leave the group"); });
+    };
+    window.onhashchange = function () { self.hashGetter(); }
 };

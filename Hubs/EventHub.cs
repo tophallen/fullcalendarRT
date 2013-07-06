@@ -5,7 +5,6 @@ using System.Web;
 using Microsoft.AspNet.SignalR;
 using System.Threading.Tasks;
 using Schedule.Web.Models;
-using Schedule.Web.Models;
 
 namespace Schedule.Web.Hubs
 {
@@ -41,6 +40,15 @@ namespace Schedule.Web.Hubs
                 else
                 {
                     Clients.Group(old.TeamName).removeEvent(CalendarEvent.FromDatabase(old));
+                    try
+                    {
+                        Clients.Group(old.TeamName + "#" + old.EmployeeName)
+                            .removeEvent(CalendarEvent.FromDatabase(old));
+                    }
+                    catch (Exception e)
+                    {
+                        Clients.Caller.logger(e.Message, "error");
+                    }
                 }
                 if (data.description != "all")
                 {
@@ -51,6 +59,14 @@ namespace Schedule.Web.Hubs
             {
                 Clients.Group(data.description).modifyEvent(data);
                 Clients.Group("all").modifyEvent(data);
+                try
+                {
+                    Clients.Group(data.description + "#" + data.title).modifyEvent(data);
+                }
+                catch (Exception e)
+                {
+                    Clients.Caller.logger(e.Message, "error");
+                }
             }
             else
             {
@@ -71,6 +87,13 @@ namespace Schedule.Web.Hubs
             if (data.description != "all")
             {
                 Clients.Group(data.description).newEvent(data);
+                try
+                {
+                    Clients.Group(data.description + "#" + data.title).newEvent(data);
+                }
+                catch (Exception e) {
+                    Clients.Caller.logger(e.Message, "error");
+                }
                 Clients.Group("all").newEvent(data);
             }
             else
@@ -90,46 +113,92 @@ namespace Schedule.Web.Hubs
 
         public void GetMoreEvents(MoreDate dateInfo)
         {
-            try
+            if (!dateInfo.team.Contains("#"))
             {
-                IQueryable<Shift> items;
-                IQueryable<Shift> broadcastItems;
-                if (dateInfo.team != "all")
+                try
                 {
-                    items = _db.Shifts.Where(c => c.TeamName == dateInfo.team
-                        && c.StartTime >= dateInfo.start
-                        && c.StartTime <= dateInfo.end);
-                    try
+                    IQueryable<Shift> items;
+                    IQueryable<Shift> broadcastItems;
+                    if (dateInfo.team != "all")
                     {
-                        broadcastItems = _db.Shifts.Where(c => c.TeamName == "all"
+                        items = _db.Shifts.Where(c => c.TeamName == dateInfo.team
                             && c.StartTime >= dateInfo.start
                             && c.StartTime <= dateInfo.end);
-                        foreach (var item in broadcastItems)
+                        try
                         {
-                            var data = CalendarEvent.FromDatabase(item);
-                            Clients.Caller.newEvent(data);
+                            broadcastItems = _db.Shifts.Where(c => c.TeamName == "all"
+                                && c.StartTime >= dateInfo.start
+                                && c.StartTime <= dateInfo.end);
+                            foreach (var item in broadcastItems)
+                            {
+                                var data = CalendarEvent.FromDatabase(item);
+                                Clients.Caller.newEvent(data);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Clients.Caller.logger(e.Message, "error");
                         }
                     }
-                    catch (Exception)
+                    else
                     {
-
+                        items = _db.Shifts.Where(c => c.StartTime >= dateInfo.start
+                            && c.StartTime <= dateInfo.end);
+                    }
+                    foreach (var item in items)
+                    {
+                        var data = CalendarEvent.FromDatabase(item);
+                        Clients.Caller.newEvent(data);
                     }
                 }
-                else
+                catch (Exception e)
                 {
-                    items = _db.Shifts.Where(c => c.StartTime >= dateInfo.start
-                        && c.StartTime <= dateInfo.end);
-                }
-                foreach (var item in items)
-                {
-                    var data = CalendarEvent.FromDatabase(item);
-                    Clients.Caller.newEvent(data);
+                    Clients.Caller.logger(e.Message, "error");
                 }
             }
-            catch (Exception)
+            else
             {
-
+                var hash = dateInfo.team.Split('#')[1];
+                var team = dateInfo.team.Split('#')[0];
+                try
+                {
+                    IQueryable<Shift> items;
+                    IQueryable<Shift> broadcastItems;
+                        items = _db.Shifts.Where(c => c.EmployeeName == hash 
+                            && c.TeamName == team
+                            && c.StartTime >= dateInfo.start
+                            && c.StartTime <= dateInfo.end);
+                        try
+                        {
+                            broadcastItems = _db.Shifts.Where(c => c.TeamName == "all"
+                                && c.StartTime >= dateInfo.start
+                                && c.StartTime <= dateInfo.end);
+                            foreach (var item in broadcastItems)
+                            {
+                                var data = CalendarEvent.FromDatabase(item);
+                                Clients.Caller.newEvent(data);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Clients.Caller.logger(e.Message, "error");
+                        }
+                    foreach (var item in items)
+                    {
+                        var data = CalendarEvent.FromDatabase(item);
+                        Clients.Caller.newEvent(data);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Clients.Caller.logger(e.Message, "error");
+                }
             }
+        }
+
+        public void Logger(string log, string errorType)
+        {
+            Clients.Caller.logger(log, errorType);
         }
 
         async public Task JoinGroup(string Group)
