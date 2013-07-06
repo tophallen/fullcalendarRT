@@ -19,7 +19,8 @@ namespace Schedule.Web.Models
                 description = shift.TeamName,
                 title = shift.EmployeeName,
                 id = shift.Id,
-                allDay = shift.AllDay
+                allDay = shift.AllDay,
+                note = shift.Notes
             };
 
             return data;
@@ -34,17 +35,13 @@ namespace Schedule.Web.Models
             DateTime tempEnd;
             if (data.end.HasValue)
             {
-                tempEnd = data.end.Value.ToLocalTime(); //new DateTime(data.end.Value.Year, data.end.Value.Month,
-                    //data.end.Value.Day, data.end.Value.Hour, data.end.Value.Minute,
-                    //data.end.Value.Second, DateTimeKind.Utc);
+                tempEnd = data.end.Value.ToLocalTime();
             }
             else
             {
-                tempEnd = data.start.AddHours(1).ToLocalTime();//new DateTime(data.start.Year, data.start.Month, data.start.Day,
-                //data.start.Hour, data.start.Minute, data.start.Second, DateTimeKind.Utc).AddHours(1);
+                tempEnd = data.start.AddHours(1).ToLocalTime();
             }
-            DateTime tempStart = data.start.ToLocalTime();//new DateTime(data.start.Year, data.start.Month, data.start.Day,
-                //data.start.Hour, data.start.Minute, data.start.Second, DateTimeKind.Utc);
+            DateTime tempStart = data.start.ToLocalTime();
             var shift = new Shift
             {
                 StartTime = tempStart,
@@ -53,8 +50,17 @@ namespace Schedule.Web.Models
                 EmployeeName = data.title,
                 Id = data.id.Value,
                 TeamName = data.description,
-                AllDay = data.allDay.Value
+                AllDay = data.allDay.Value,
+                Notes = data.note
             };
+            if (shift.WorkType == ShiftType.Coverage)
+            {
+                shift.CoveringOtherShift = true;
+            }
+            if (shift.WorkType == ShiftType.Vacation)
+            {
+                shift.CoverageNeeded = true;
+            }
 
             return shift;
         }
@@ -66,5 +72,6 @@ namespace Schedule.Web.Models
         public virtual DateTime? end { get; set; }
         public virtual string[] className { get; set; }
         public virtual string description { get; set; }
+        public virtual string note { get; set; }
     }
 }

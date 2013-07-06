@@ -16,6 +16,7 @@ namespace Schedule.Web
     {
         protected void Application_Start()
         {
+            MigrationConfig.Initialize();
             Push.Config();
             AreaRegistration.RegisterAllAreas();
 

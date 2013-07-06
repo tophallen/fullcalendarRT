@@ -50,6 +50,7 @@ var viewModel = function () {
     self.calendarHolder = ko.observableArray([]);
     self.redirectTeam = ko.observable();
     self.eventList = ko.observableArray([]);
+    self.selectedNotes = ko.observable();
 
     /*********************************/
     /*        Event Handling         */
@@ -73,6 +74,7 @@ var viewModel = function () {
         temp1.description = event.description;
         temp1.allDay = event.allDay;
         temp1.className = event.className;
+        temp1.note = event.note;
         $('#calendar').fullCalendar('updateEvent', temp1);
         try {
             if (temp1.id == self.theItem().id) {
@@ -87,7 +89,8 @@ var viewModel = function () {
             allDay: temp1.allDay,
             className: [temp1.className],
             description: temp1.description,
-            title: temp1.title
+            title: temp1.title,
+            note: temp1.note
         });
     }
 
@@ -103,6 +106,7 @@ var viewModel = function () {
         self.shiftType(event.className[0]);
         self.shiftStartTime(self.htmlInputDate(event.start));
         self.selectedTeam(event.description);
+        self.selectedNotes(event.note);
         try {
             self.allDay(event.allDay);
         } catch (e) {
@@ -142,7 +146,8 @@ var viewModel = function () {
             allDay: self.allDay(),
             className: [self.shiftType()],
             description: "",
-            title: self.userName()
+            title: self.userName(),
+            note: self.selectedNotes()
         };
         if (self.showTeamOption()) { theItem.description = self.selectedTeam(); }
         else { theItem.description = self.groupName(); }
@@ -163,6 +168,7 @@ var viewModel = function () {
         temper.id = theItem.id;
         temper.allDay = self.allDay();
         temper.className = [self.shiftType()];
+        temper.note = self.selectedNotes();
         if (self.showTeamOption()) { temper.description = self.selectedTeam(); }
         else { temper.description = self.groupName(); }
         temper.title = self.userName();
@@ -205,7 +211,8 @@ var viewModel = function () {
             start: event.start,
             end: event.end,
             className: event.className,
-            description: event.description
+            description: event.description,
+            note: event.note
         }).done(function () {
         }).fail(function (error) {
             console.log("Error my friend");
@@ -259,7 +266,8 @@ var viewModel = function () {
                     start: event.start,
                     end: event.end,
                     className: event.className,
-                    description: event.description
+                    description: event.description,
+                    note: event.note
                 }).done(function () {
                 }).fail(function (error) {
                     revertFunc();
@@ -281,7 +289,8 @@ var viewModel = function () {
                     start: event.start,
                     end: event.end,
                     className: event.className,
-                    description: event.description
+                    description: event.description,
+                    note: event.note
                 }).done(function () {
                 }).fail(function (error) {
                     revertFunc();
@@ -290,8 +299,18 @@ var viewModel = function () {
             dayClick: function (date, allDay, jsEvent, view) {
                 self.showError("");
                 self.userName("");
-                self.shiftStartTime(self.htmlInputDate(date));
-                self.shiftEndTime(self.htmlInputDate(date));
+                var start = new Date();
+                var end = new Date();
+                self.selectedNotes("");
+                if (allDay) {
+                    start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0, 0);
+                    end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 17, 0, 0);
+                } else {
+                    start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), 0);
+                    end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1, date.getMinutes(), 0);
+                }
+                self.shiftStartTime(self.htmlInputDate(start));
+                self.shiftEndTime(self.htmlInputDate(end));
                 self.showDelete(false);
                 self.allDay(allDay);
                 if (self.groupName() != "all") {
@@ -308,6 +327,7 @@ var viewModel = function () {
                 self.userName(calEvent.title);
                 self.shiftType(calEvent.className[0]);
                 self.shiftStartTime(self.htmlInputDate(calEvent.start));
+                self.selectedNotes(calEvent.note);
                 self.selectedTeam(calEvent.description);
                 try {
                     self.allDay(calEvent.allDay);
@@ -425,14 +445,12 @@ var viewModel = function () {
             self.showTeamOption(true);
         }
         self.groupName(gn);
-        setTimeout(function () {
-            self.event.server.joinGroup(gn).done(function () {
-                self.isLive(true);
-                console.log("Joined group: " + gn);
-                $('#calendar').fullCalendar('refetchEvents');
-            }).fail(function (error) {
-                console.log("There was something wrong with joining, try again or contact help.");
-            });
-        }, 500);
+        self.event.server.joinGroup(gn).done(function () {
+            self.isLive(true);
+            console.log("Joined group: " + gn);
+            $('#calendar').fullCalendar('refetchEvents');
+        }).fail(function (error) {
+            console.log("There was something wrong with joining, try again or contact help.");
+        });
     };
 };

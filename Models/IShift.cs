@@ -17,5 +17,6 @@ namespace Schedule.Web.Models
         bool CoveringOtherShift { get; set; }
         bool CoverageNeeded { get; set; }
         bool AllDay { get; set; }
+        string Notes { get; set; }
     }
 }

@@ -23,6 +23,7 @@ namespace Schedule.Web.Models
             this.WorkType = results.WorkType;
             this.TeamName = results.TeamName;
             this.AllDay = results.AllDay;
+            this.Notes = results.Notes;
         }
         public virtual int Id { get; set; }
         public virtual string EmployeeName { get; set; }
@@ -33,5 +34,6 @@ namespace Schedule.Web.Models
         public virtual bool CoveringOtherShift { get; set; }
         public virtual bool CoverageNeeded { get; set; }
         public virtual bool AllDay { get; set; }
+        public virtual string Notes { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Calendar.Data;
+﻿using Schedule.Web.Models;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hosting;
 using Microsoft.AspNet.SignalR.Infrastructure;
