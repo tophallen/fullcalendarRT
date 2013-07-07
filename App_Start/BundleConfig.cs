@@ -8,9 +8,16 @@ namespace Schedule.Web
         // For more information on Bundling, visit http://go.microsoft.com/fwlink/?LinkId=254725
         public static void RegisterBundles(BundleCollection bundles)
         {
+            bundles.Add(new ScriptBundle("~/js/json2").Include(
+                        "~/js/libs/json2.js"));
+
             bundles.Add(new ScriptBundle("~/js/jquery").Include(
                         "~/js/month/jquery-{version}.js",
                         "~/js/month/jquery-ui-{version}.custom.js"));
+
+            bundles.Add(new ScriptBundle("~/js/jqueryval").Include(
+                        "~/js/libs/jquery.unobtrusive*",
+                        "~/js/libs/jquery.validate*"));
 
             bundles.Add(new ScriptBundle("~/js/knockout").Include(
                         "~/js/libs/knockout-{version}.js"));

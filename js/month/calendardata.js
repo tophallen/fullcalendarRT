@@ -258,8 +258,7 @@ var viewModel = function () {
             rightButtons = 'month,agendaWeek,agendaDay';
             defaultView = 'month';
             ratio = 2;
-            editable = false;
-        }
+        } else { editable = true; }
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
