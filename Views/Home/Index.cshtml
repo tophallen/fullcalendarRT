@@ -33,6 +33,7 @@
     <br />
     End: &nbsp; <input type="datetime-local" name="endTime" id="endTime" data-bind="value: shiftEndTime" /></div>
     }
+    @Request.Browser.MajorVersion
     <br />
     <input type="button" value="Add" id="addEvent" name="addEvent" data-bind="click: submitEvent, attr: { value: addButtonValue }" />
     <input type="button" value="Cancel" id="cancelEvent" name="cancelEvent" data-bind="click: cancelEvent" />
@@ -44,6 +45,10 @@
 </div>
 
 @section scripts {
+    @if (Request.UserAgent.Contains("MSIE") && Request.Browser.MajorVersion <= 8)
+    {
+        @Scripts.Render("~/js/json2")
+    }
     @Scripts.Render("~/js/jquery")
     @Scripts.Render("~/js/knockout")
     @Scripts.Render("~/js/signalr")
@@ -52,6 +57,20 @@
 }
 @Scripts.Render("~/js/data")
 <script>
+    @if (Request.UserAgent.Contains("MSIE") && Request.Browser.MajorVersion <= 8)
+    {
+        @Html.Raw("var ieEightMinus = true;")
+    }
+    else {
+        @Html.Raw("var ieEightMinus = false;")
+    }
+    @if (Request.Browser.IsMobileDevice)
+    {
+        @Html.Raw("var isMobile = true;")
+    }
+    else {
+        @Html.Raw("var isMobile = false;")
+    }
     $(document).ready(
         ko.applyBindings(new viewModel()));
 </script>

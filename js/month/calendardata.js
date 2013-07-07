@@ -250,7 +250,16 @@ var viewModel = function () {
     /*          The Calendar         */
     /*********************************/
     $(document).ready(function () {
-
+        var editable = !ieEightMinus;
+        var rightButtons = '';
+        var defaultView = 'agendaDay';
+        var ratio = .7;
+        if (!isMobile) {
+            rightButtons = 'month,agendaWeek,agendaDay';
+            defaultView = 'month';
+            ratio = 2;
+            editable = false;
+        }
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
@@ -261,11 +270,12 @@ var viewModel = function () {
             header: {
                 left: 'prev,next today',
                 center: 'title',
-                right: 'month,agendaWeek,agendaDay'
+                right: rightButtons
             },
-            editable: true,
+            defaultView: defaultView,
+            editable: editable,
             weekMode: 'liquid',
-            aspectRatio: 2,
+            aspectRatio: ratio,
             timeFormat: {
                 '': 'H(:mm){ - H(:mm)}'
             },

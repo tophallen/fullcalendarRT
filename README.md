@@ -6,15 +6,14 @@ with signalR as the real-time framework, built on a MVC site
 
 ### Features
 
-- Support for IE10, Firefox, and Chrome
+- Support for IE9+, Firefox, and Chrome
 - Simultaneous event editing handling
 - support for slower connections
 - knockout.js view updating outside of fullcalendar
 - unlimited team and group support
 - perfect for teams in an org or individuals in a team
 - also works for individuals within a team within an org
-
-note: IE8 works, but still has a couple bugs being worked out.
+- viewable but not editable in <=IE9 and mobile devices with modern browsers
 
 The data is managed and stored in the project with the Entity Framework
 and SQL, but it wouldn't be hard to impletement a NoSQL db with this.
