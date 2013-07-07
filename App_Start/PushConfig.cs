@@ -1,15 +1,6 @@
-﻿using Schedule.Web.Models;
-using Microsoft.AspNet.SignalR;
-using Microsoft.AspNet.SignalR.Hosting;
-using Microsoft.AspNet.SignalR.Infrastructure;
-using Owin;
-using Schedule.Web.DependencyResolution;
+﻿using Microsoft.AspNet.SignalR;
 using Schedule.Web.Hubs;
 using Schedule.Web.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Http;
 using System.Web.Routing;
 
 namespace Schedule.Web

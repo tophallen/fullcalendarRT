@@ -4,8 +4,6 @@ using Schedule.Web.Hubs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace Schedule.Web.Controllers
@@ -23,16 +21,16 @@ namespace Schedule.Web.Controllers
 
         public ActionResult Index(string id = "all")
         {
-            IQueryable<Shift> temp;
-            List<string> theList = new List<string>();
+            IQueryable<CalEvent> EventList;
+            List<string> TeamList = new List<string>();
             try
             {
-                temp = _db.Shifts;
-                foreach (var item in temp)
+                EventList = _db.Shifts;
+                foreach (var item in EventList)
                 {
-                    if (!theList.Contains(item.TeamName))
+                    if (!TeamList.Contains(item.TeamName))
                     {
-                        theList.Add(item.TeamName);
+                        TeamList.Add(item.TeamName);
                     }
                 }
             }
@@ -40,14 +38,14 @@ namespace Schedule.Web.Controllers
             {
                 _context.Clients.All.logger(e.Message, "error");
             }
-            if (!theList.Contains("all"))
+            if (!TeamList.Contains("all"))
             {
-                theList.Add("all");
+                TeamList.Add("all");
             }
-            ViewBag.Teams = theList;
+            ViewBag.Teams = TeamList;
             try
             {
-                ViewBag.typeShift = ShiftHelper.GetTypes().Values;
+                ViewBag.typeEvent = EventHelper.GetTypes().Values;
             }
             catch (Exception e)
             {

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using Microsoft.AspNet.SignalR;
 using System.Threading.Tasks;
 using Schedule.Web.Models;
@@ -28,7 +26,7 @@ namespace Schedule.Web.Hubs
                 data.description = "all";
             var obj = CalendarEvent.ToDatabase(data);
             var old = _db.Shifts.Single(c => c.Id == obj.Id);
-            _db.Modify(obj as Shift, old);
+            _db.Modify(obj as CalEvent, old);
             _db.Save();
             data = CalendarEvent.FromDatabase(obj);
             if (old.TeamName != data.description)
@@ -81,7 +79,7 @@ namespace Schedule.Web.Hubs
             if (data.description == null)
                 data.description = "all";
             var obj = CalendarEvent.ToDatabase(data);
-            _db.Add(obj as Shift);
+            _db.Add(obj as CalEvent);
             _db.Save();
             data = CalendarEvent.FromDatabase(obj);
             if (data.description != "all")
@@ -117,8 +115,8 @@ namespace Schedule.Web.Hubs
             {
                 try
                 {
-                    IQueryable<Shift> items;
-                    IQueryable<Shift> broadcastItems;
+                    IQueryable<CalEvent> items;
+                    IQueryable<CalEvent> broadcastItems;
                     if (dateInfo.team != "all")
                     {
                         items = _db.Shifts.Where(c => c.TeamName == dateInfo.team
@@ -162,8 +160,8 @@ namespace Schedule.Web.Hubs
                 var team = dateInfo.team.Split('#')[0];
                 try
                 {
-                    IQueryable<Shift> items;
-                    IQueryable<Shift> broadcastItems;
+                    IQueryable<CalEvent> items;
+                    IQueryable<CalEvent> broadcastItems;
                         items = _db.Shifts.Where(c => c.EmployeeName == hash 
                             && c.TeamName == team
                             && c.StartTime >= dateInfo.start

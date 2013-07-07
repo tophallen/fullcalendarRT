@@ -1,11 +1,9 @@
 ﻿using Schedule.Web.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Objects;
 using System.Linq;
-using System.Web;
 
 namespace Schedule.Web.Infrastructure
 {
@@ -19,7 +17,7 @@ namespace Schedule.Web.Infrastructure
 
         private bool _disposed;
 
-        public DbSet<Shift> Shifts { get; set; }
+        public DbSet<CalEvent> Shifts { get; set; }
 
         #region methods
         
@@ -28,12 +26,12 @@ namespace Schedule.Web.Infrastructure
             SaveChanges();
         }
 
-        void ICalendarRepository.Add(Shift item)
+        void ICalendarRepository.Add(CalEvent item)
         {
             Shifts.Add(item);
         }
 
-        void ICalendarRepository.Modify(Shift item, Shift old)
+        void ICalendarRepository.Modify(CalEvent item, CalEvent old)
         {
             Detach(old);
             this.Shifts.Attach(item);
@@ -78,7 +76,7 @@ namespace Schedule.Web.Infrastructure
 
         #region properties
 
-        IQueryable<Shift> ICalendarRepository.Shifts
+        IQueryable<CalEvent> ICalendarRepository.Shifts
         {
             get { return Shifts; }
         }

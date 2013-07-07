@@ -1,15 +1,11 @@
-﻿using Schedule.Web.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System;
 
 namespace Schedule.Web.Models
 {
 
     public class CalendarEvent
     {
-        public static CalendarEvent FromDatabase(IShift shift)
+        public static CalendarEvent FromDatabase(ICalEvent shift)
         {
             var data = new CalendarEvent
             {
@@ -26,7 +22,7 @@ namespace Schedule.Web.Models
             return data;
         }
 
-        public static IShift ToDatabase(CalendarEvent data)
+        public static ICalEvent ToDatabase(CalendarEvent data)
         {
             if (!data.allDay.HasValue)
             {
@@ -42,27 +38,19 @@ namespace Schedule.Web.Models
                 tempEnd = data.start.AddHours(1).ToLocalTime();
             }
             DateTime tempStart = data.start.ToLocalTime();
-            var shift = new Shift
+            var calEvent = new CalEvent
             {
                 StartTime = tempStart,
                 EndTime = tempEnd,
-                WorkType = ShiftHelper.TryParse(data.className[0]),
+                WorkType = EventHelper.TryParse(data.className[0]),
                 EmployeeName = data.title,
                 Id = data.id.Value,
                 TeamName = data.description,
                 AllDay = data.allDay.Value,
                 Notes = data.note
             };
-            if (shift.WorkType == ShiftType.Coverage)
-            {
-                shift.CoveringOtherShift = true;
-            }
-            if (shift.WorkType == ShiftType.Vacation)
-            {
-                shift.CoverageNeeded = true;
-            }
 
-            return shift;
+            return calEvent;
         }
 
         public virtual int? id { get; set; }

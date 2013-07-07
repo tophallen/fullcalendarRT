@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Schedule.Web.Models
 {
-    public class Shift : IShift
+    public class CalEvent : ICalEvent
     {
-        public Shift()
+        public CalEvent()
         {
-            this.WorkType = ShiftType.Scheduled;
+            this.WorkType = EventType.Scheduled;
         }
 
-        public Shift(IShift results)
+        public CalEvent(ICalEvent results)
         {
-            this.CoverageNeeded = results.CoverageNeeded;
-            this.CoveringOtherShift = results.CoveringOtherShift;
             this.EmployeeName = results.EmployeeName;
             this.EndTime = results.EndTime;
             this.Id = results.Id;
@@ -28,11 +23,9 @@ namespace Schedule.Web.Models
         public virtual int Id { get; set; }
         public virtual string EmployeeName { get; set; }
         public virtual string TeamName { get; set; }
-        public virtual ShiftType WorkType { get; set; }
+        public virtual EventType WorkType { get; set; }
         public virtual DateTime StartTime { get; set; }
         public virtual DateTime EndTime { get; set; }
-        public virtual bool CoveringOtherShift { get; set; }
-        public virtual bool CoverageNeeded { get; set; }
         public virtual bool AllDay { get; set; }
         public virtual string Notes { get; set; }
     }
