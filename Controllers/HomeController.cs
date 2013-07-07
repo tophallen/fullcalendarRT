@@ -45,7 +45,14 @@ namespace Schedule.Web.Controllers
                 theList.Add("all");
             }
             ViewBag.Teams = theList;
-            ViewBag.typeShift = ShiftHelper.GetTypes().Values;
+            try
+            {
+                ViewBag.typeShift = ShiftHelper.GetTypes().Values;
+            }
+            catch (Exception e)
+            {
+                _context.Clients.All.logger(e.Message, "error");
+            }
             return View();
         }
     }

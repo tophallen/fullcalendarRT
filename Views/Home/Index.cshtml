@@ -69,6 +69,8 @@
     else {
         @Html.Raw("var isMobile = false;")
     }
+    var browserVersionNumber = @Html.Raw(Request.Browser.MajorVersion)
+        my = { vm: new viewModel() };
     $(document).ready(
-        ko.applyBindings(new viewModel()));
+        ko.applyBindings(my.vm));
 </script>

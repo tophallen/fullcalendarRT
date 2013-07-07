@@ -27,8 +27,11 @@ var viewModel = function () {
     self.enableLogging = ko.observable(false);
     self.logger = function (error, errorType) {
         if (self.enableLogging()) {
-            if (errorType != "debug") {
-                error = "[" + new Date().toLocaleString() + "] " + error;
+            if (typeof error === 'object' || typeof error === 'function') {
+                error = ko.toJSON(error);
+            }
+            if (errorType !== "debug") {
+                error = "[" + new Date().toLocaleTimeString() + "] " + error;
             }
             if (typeof errorType != 'undefined' || errorType != "") {
                 switch (errorType) {
@@ -120,7 +123,6 @@ var viewModel = function () {
     /*        Event Handling         */
     /*********************************/
     self.pushEvents = function (event) {
-        self.logger(event, "info");
         self.eventList.push(event);
         $('#calendar').fullCalendar('renderEvent', event, false);
     };
@@ -298,6 +300,7 @@ var viewModel = function () {
         self.logger("IE: " + isIE, "info");
         self.logger("Opera: " + isOpera, "info");
         self.logger("Mobile Browser:" + isMobile, "info");
+        self.logger("version:" + browserVersionNumber, "info");
         var editable = !ieEightMinus,
             rightButtons = '',
             defaultView = 'agendaDay',
