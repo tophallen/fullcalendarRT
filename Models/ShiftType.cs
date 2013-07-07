@@ -9,30 +9,23 @@ namespace Schedule.Web.Models
     {
         public static ShiftType TryParse(string shiftType)
         {
-            ShiftType shift;
-            int value;
-            switch (shiftType)
+            return (ShiftType)Enum.Parse(typeof(ShiftType), shiftType);
+        }
+
+        public static ShiftType TryParse(int shiftType)
+        {
+            return (ShiftType)shiftType;
+        }
+
+        public static Dictionary<int, String> GetTypes()
+        {
+            Dictionary<int, string> WorkTypes = new Dictionary<int, string>();
+            int i = 0;
+            foreach (var item in typeof(ShiftType).GetEnumNames())
             {
-                case "Coverage":
-                    value = 0;
-                    break;
-                case "Scheduled":
-                    value = 1;
-                    break;
-                case "Vacation":
-                    value = 2;
-                    break;
-                case "Training":
-                    value = 3;
-                    break;
-                case "Meeting":
-                    value = 4;
-                    break;
-                default:
-                    return ShiftType.Scheduled;
+                WorkTypes.Add(i++, item);
             }
-            shift = (ShiftType)value;
-            return shift;
+            return WorkTypes;
         }
     }
 

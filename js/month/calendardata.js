@@ -1,4 +1,4 @@
-﻿///<reference path="../_references.js" />
+﻿///<reference path="~/js/libs/_references.js" />
 /*********************************/
 /*        Browser Check          */
 /*********************************/
@@ -7,8 +7,9 @@ var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
 var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
 // At least Safari 3+: "[object HTMLElementConstructor]"
-var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+var isChrome = !!window.chrome && !isOpera; // Chrome 1+
 var isIE = /*@cc_on!@*/false || document.documentMode;   // At least IE6
+if (typeof isIE == 'undefined') { isIE = false; }
 if (!isChrome) {
     $("#endDate").attr('data-bind', 'value: legacyEndDate');
     $("#endTime").attr('data-bind', 'value: legacyEndTime');
@@ -22,8 +23,44 @@ if (!isChrome) {
 var viewModel = function () {
     var self = this;
 
-    // enable logging here
+    // enable logging here or override with '?debug=true' in url
     self.enableLogging = ko.observable(false);
+    self.logger = function (error, errorType) {
+        if (self.enableLogging()) {
+            if (errorType != "debug") {
+                error = "[" + new Date().toLocaleString() + "] " + error;
+            }
+            if (typeof errorType != 'undefined' || errorType != "") {
+                switch (errorType) {
+                    case "error":
+                        console.error(error);
+                        break;
+                    case "warning":
+                        console.warn(error);
+                        break;
+                    case "log":
+                        console.log(error);
+                        break;
+                    case "info":
+                        if (window.console.debug) {
+                            window.console.debug(error);
+                        } else {
+                            console.info(error);
+                        }
+                        break;
+                    default:
+                        if (window.console.debug) {
+                            window.console.debug(error);
+                        } else {
+                            Debug.write(error);
+                        }
+                        break;
+                }
+            } else {
+                console.error(error);
+            }
+        }
+    };
 
     //dialogs
     self.newEventTrigger = function () {
@@ -73,7 +110,7 @@ var viewModel = function () {
     self.eventList = ko.observableArray([]);
     self.selectedNotes = ko.observable();
 
-    //for IE and Firefox
+    //for not chrome
     self.legacyStartDate = ko.observable();
     self.legacyStartTime = ko.observable();
     self.legacyEndDate = ko.observable();
@@ -188,7 +225,12 @@ var viewModel = function () {
                 temper = { start: "", end: "", id: "", allDay: "", className: "", description: "", title: "" };
             }
             else { temper = temper[0]; }
-        } catch (e) { temper = { start: "", end: "", id: "", allDay: "", className: "", description: "", title: "" }; }
+        } catch (e) {
+            temper = {
+                start: "", end: "", id: "", allDay: "", className: "",
+                description: "", title: ""
+            };
+        }
         temper.start = tempstart;
         temper.end = tempend;
         temper.id = theItem.id;
@@ -250,18 +292,23 @@ var viewModel = function () {
     /*          The Calendar         */
     /*********************************/
     $(document).ready(function () {
-        var editable = !ieEightMinus;
-        var rightButtons = '';
-        var defaultView = 'agendaDay';
-        var ratio = .7;
-        var dayForm = 'dddd, MMM d, yyyy';
-        var menuOpt = 'prev,next today';
+        var date = new Date();
+        self.logger("Chrome: " + isChrome, "info");
+        self.logger("Firefox: " + isFirefox, "info");
+        self.logger("IE: " + isIE, "info");
+        self.logger("Opera: " + isOpera, "info");
+        self.logger("Mobile Browser:" + isMobile, "info");
+        var editable = !ieEightMinus,
+            rightButtons = '',
+            defaultView = 'agendaDay',
+            ratio = .7,
+            dayForm = 'dddd, MMM d, yyyy',
+            menuOpt = 'prev,next today';
         if (!isMobile) {
             rightButtons = 'month,agendaWeek,agendaDay';
             defaultView = 'month';
             ratio = 2;
         } else { editable = false; dayForm = 'MMM d, yyyy'; rightButtons = 'today'; menuOpt = 'prev,next'; }
-        var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
         var y = date.getFullYear();
@@ -423,16 +470,15 @@ var viewModel = function () {
         else { return true; }
     };
     self.htmlInputDate = function (date) {
-        var day = date.getDate();
-        var themonth = date.getMonth();
-        var theyear = date.getFullYear();
-        var jDate = date;
-        var hourItem = self.checkTimeParsing(jDate.getHours());
-        var dayItem = self.checkTimeParsing(parseInt(day));
-        var monthItem = self.checkTimeParsing(parseInt(themonth) + 1);
-        var minutes = self.checkTimeParsing(jDate.getMinutes());
-        var retVal = theyear + "-" + monthItem.toString() + "-" + dayItem.toString() + "T" + hourItem.toString() + ":" + minutes.toString() +":00";
-        return retVal;
+        var day = date.getDate(),
+            themonth = date.getMonth(),
+            theyear = date.getFullYear(),
+            hourItem = self.checkTimeParsing(date.getHours()),
+            dayItem = self.checkTimeParsing(parseInt(day)),
+            monthItem = self.checkTimeParsing(parseInt(themonth) + 1),
+            minutes = self.checkTimeParsing(date.getMinutes());
+        return theyear + "-" + monthItem.toString() + "-" + dayItem.toString() + "T" +
+            hourItem.toString() + ":" + minutes.toString() + ":00";
     }
 
     self.dropDeltaShift = function (deltaDay, deltaMinute, date) {
@@ -458,8 +504,8 @@ var viewModel = function () {
     };
 
     self.dateCombiner = function (date, time) {
-        var mdy = date.split('/');
-        var hm = time.split(':');
+        var mdy = date.split('/'),
+            hm = time.split(':');
         self.logger(new Date(mdy[2], mdy[0], mdy[1], hm[0], hm[1], 0).toDateString(), "info");
         return new Date(mdy[2], mdy[0] - 1, mdy[1], hm[0], hm[1], 0);
     };
@@ -484,10 +530,7 @@ var viewModel = function () {
     };
 
     self.checkTimeParsing = function (i) {
-        if (i < 10) {
-            i = "0" + i;
-        }
-        return i;
+        return (i < 10 ? '0' : '') + i;
     }
 
     function getRepeats(event) {
@@ -505,60 +548,14 @@ var viewModel = function () {
     }
 
     self.loadWorkTypes = function () {
-        $.ajax({
-            type: 'GET',
-            url: '/Api/Events/WorkTypes',
-            cache: false,
-            contentType: 'application/json; charset=utf-8',
-            statusCode: {
-                200: function (data, textStatus, jqXHR) {
-                    var shifties = ko.toJS(data);
-                    $.each(shifties, function (index, value) {
-                        self.workTypeCollection().push(value);
-                    });
-                }
-            }
+        $("#shiftType option").each(function () {
+            self.workTypeCollection().push($(this).val());
         });
-        //Query String Checks - besides debug
     }();
 
     /*********************************/
     /*      SignalR Initializer      */
     /*********************************/
-    self.logger = function (error, errorType) {
-        if (self.enableLogging()) {
-            if (typeof errorType != 'undefined' || errorType != "") {
-                switch (errorType) {
-                    case "error":
-                        console.error(error);
-                        break;
-                    case "warning":
-                        console.warn(error);
-                        break;
-                    case "log":
-                        console.log(error);
-                        break;
-                    case "info":
-                        if (window.console.debug) {
-                            window.console.debug(error);
-                        } else {
-                            console.info(error);
-                        }
-                        break;
-                    default:
-                        if (window.console.debug) {
-                            window.console.debug(error);
-                        } else {
-                            Debug.write(error);
-                        }
-                        break;
-                }
-            } else {
-                console.error(error);
-            }
-        }
-    };
-
     self.signalHook = function () {
         if (window.location.search.match(/debug=true/)) {
             self.enableLogging(true);
@@ -573,7 +570,7 @@ var viewModel = function () {
         $.connection.hub.start().done(function () {
             self.groupNameGetter();
         }).fail(function (error) {
-            self.logger(error);
+            self.logger(error, "error");
         });
     }();
 

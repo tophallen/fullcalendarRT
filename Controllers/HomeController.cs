@@ -13,9 +13,11 @@ namespace Schedule.Web.Controllers
     public class HomeController : Controller
     {
         private readonly ICalendarRepository _db;
+        private IHubContext _context;
 
         public HomeController(ICalendarRepository db)
         {
+            _context = GlobalHost.ConnectionManager.GetHubContext<EventHub>();
             _db = db;
         }
 
@@ -36,14 +38,14 @@ namespace Schedule.Web.Controllers
             }
             catch (Exception e)
             {
-                var context = GlobalHost.ConnectionManager.GetHubContext<EventHub>();
-                context.Clients.All.logger(e.Message, "error");
+                _context.Clients.All.logger(e.Message, "error");
             }
             if (!theList.Contains("all"))
             {
                 theList.Add("all");
             }
             ViewBag.Teams = theList;
+            ViewBag.typeShift = ShiftHelper.GetTypes().Values;
             return View();
         }
     }

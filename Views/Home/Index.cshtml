@@ -1,6 +1,5 @@
 ﻿@{
     ViewBag.Title = "Calendar.";
-    var typeShift = new List<string> { "Coverage", "Scheduled", "Vacation", "Training", "Meeting" };
 }
 <section>
 <div id='calendar'></div>
@@ -13,7 +12,7 @@
     @{@Html.DropDownList("team", new SelectList(ViewBag.Teams), new { data_bind = "value: selectedTeam, visible: showTeamOption" })}
     <input type="text" name="userName" id="userName" placeholder="John the smitty Smith" data-bind="value: userName, valueUpdate: 'afterkeydown'" />
     <br />
-    Shift Type: @Html.DropDownList("shiftType", new SelectList(typeShift, "Scheduled"), new { data_bind = "value: shiftType" })
+    Shift Type: @Html.DropDownList("shiftType", new SelectList(ViewBag.typeShift, "Scheduled"), new { data_bind = "value: shiftType" })
     &nbsp; All Day Event? <input type="checkbox" id="allDay" name="allDay" data-bind="checked: allDay" />
     <br /><span style="height:50px; text-align:center; vertical-align:central;">Notes: &nbsp;</span>
     @Html.TextArea("notes", new { style= "width:275px; height:50px; ", data_bind = "value: selectedNotes, valueUpdate: 'afterkeydown'" })
