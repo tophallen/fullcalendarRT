@@ -254,11 +254,13 @@ var viewModel = function () {
         var rightButtons = '';
         var defaultView = 'agendaDay';
         var ratio = .7;
+        var dayForm = 'dddd, MMM d, yyyy';
+        var menuOpt = 'prev,next today';
         if (!isMobile) {
             rightButtons = 'month,agendaWeek,agendaDay';
             defaultView = 'month';
             ratio = 2;
-        } else { editable = true; }
+        } else { editable = false; dayForm = 'MMM d, yyyy'; rightButtons = 'today'; menuOpt = 'prev,next'; }
         var date = new Date();
         var d = date.getDate();
         var m = date.getMonth();
@@ -267,9 +269,12 @@ var viewModel = function () {
         self.calendar = $('#calendar').fullCalendar({
             theme: true,
             header: {
-                left: 'prev,next today',
+                left: menuOpt,
                 center: 'title',
                 right: rightButtons
+            },
+            titleFormat: {
+                day: dayForm
             },
             defaultView: defaultView,
             editable: editable,
@@ -339,36 +344,38 @@ var viewModel = function () {
                 }
             },
             dayClick: function (date, allDay, jsEvent, view) {
-                self.showError("");
-                self.userName("");
-                var start = new Date();
-                var end = new Date();
-                self.selectedNotes("");
-                if (allDay) {
-                    start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0, 0);
-                    end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 17, 0, 0);
-                } else {
-                    start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), 0);
-                    end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1, date.getMinutes(), 0);
+                if (!isMobile) {
+                    self.showError("");
+                    self.userName("");
+                    var start = new Date();
+                    var end = new Date();
+                    self.selectedNotes("");
+                    if (allDay) {
+                        start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0, 0);
+                        end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 17, 0, 0);
+                    } else {
+                        start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), 0);
+                        end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1, date.getMinutes(), 0);
+                    }
+                    if (isChrome) {
+                        self.shiftStartTime(self.htmlInputDate(start));
+                        self.shiftEndTime(self.htmlInputDate(end));
+                    } else {
+                        self.legacyStartDate(self.dateSplitter(start));
+                        self.legacyStartTime(self.timeSplitter(start));
+                        self.legacyEndDate(self.dateSplitter(end));
+                        self.legacyEndTime(self.timeSplitter(end));
+                    }
+                    self.showDelete(false);
+                    self.allDay(allDay);
+                    if (self.groupName() != "all") {
+                        self.selectedTeam(self.groupName().split('#')[0]);
+                    }
+                    self.repeatCount(getRepeats(null));
+                    self.addButtonValue("Create");
+                    self.dialogTitle("New Event.");
+                    $("#dialogNewEvent").dialog("open");
                 }
-                if (isChrome) {
-                    self.shiftStartTime(self.htmlInputDate(start));
-                    self.shiftEndTime(self.htmlInputDate(end));
-                } else {
-                    self.legacyStartDate(self.dateSplitter(start));
-                    self.legacyStartTime(self.timeSplitter(start));
-                    self.legacyEndDate(self.dateSplitter(end));
-                    self.legacyEndTime(self.timeSplitter(end));
-                }
-                self.showDelete(false);
-                self.allDay(allDay);
-                if (self.groupName() != "all") {
-                    self.selectedTeam(self.groupName().split('#')[0]);
-                }
-                self.repeatCount(getRepeats(null));
-                self.addButtonValue("Create");
-                self.dialogTitle("New Event.");
-                $("#dialogNewEvent").dialog("open");
             },
             eventClick: function (calEvent, jsEvent, view) {
                 self.showError("");
