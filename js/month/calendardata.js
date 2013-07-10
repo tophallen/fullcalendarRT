@@ -17,6 +17,9 @@ if (!isChrome) {
     $("#startTime").attr('data-bind', 'value: legacyStartTime');
 }
 
+//logging types for self.logger();
+var logAsWarning = "warning", logAsError = "error", logAsInfo = "info", logAsDebug = "debug", logAsLog = "log";
+
 /*********************************/
 /*      Knockout ViewModel       */
 /*********************************/
@@ -25,6 +28,10 @@ var viewModel = function () {
 
     // enable logging here or override with '?debug=true' in url
     self.enableLogging = ko.observable(false);
+    
+    // the logger can take any object and put it into a JSON string for debugging in any browser 
+    //(IE, has trouble with logging objects and functions) and a second param is a string representing
+    //the way it should be logged
     self.logger = function (error, errorType) {
         if (self.enableLogging()) {
             if (typeof error === 'object' || typeof error === 'function') {
@@ -121,44 +128,66 @@ var viewModel = function () {
 
     /*********************************/
     /*        Event Handling         */
-    /*********************************/
+    /*********************************/     //ieEightMinus
     self.pushEvents = function (event) {
         self.eventList.push(event);
         $('#calendar').fullCalendar('renderEvent', event, false);
     };
 
     self.pushModifyEvent = function (event) {
-        var temper = self.eventList.remove(function (data) {
+        self.logger(event, logAsError);
+        if (!ieEightMinus) {
+            var temper = self.eventList.remove(function (data) {
                 return data.id == event.id;
-        });
+            });
+        } else {
+            try {
+                var temper = self.eventList.remove(function (data) {
+                    return data.id == event.id;
+                });
+            } catch (e) {
+                var temper = self.theItem();
+            }
+        }
+        self.logger(temper, logAsWarning);
         var temp = $("#calendar").fullCalendar('clientEvents', function (data) {
             return data.id == event.id;
         });
+        self.logger(temp, logAsInfo);
         var temp1 = temp[0];
-        temp1.title = event.title;
-        temp1.start = self.localEventDateParse(event.start);
-        temp1.end = self.localEventDateParse(event.end);
-        temp1.description = event.description;
-        temp1.allDay = event.allDay;
-        temp1.className = event.className;
-        temp1.note = event.note;
-        $('#calendar').fullCalendar('updateEvent', temp1);
+        if (ieEightMinus) {
+            temp1.title = event.title;
+            temp1.start = self.localEventDateParse(event.start);
+            temp1.end = self.localEventDateParse(event.end);
+            temp1.description = event.description;
+            temp1.allDay = event.allDay;
+            temp1.className = event.className;
+            temp1.note = event.note;
+            self.logger(temp1, logAsInfo);
+            $('#calendar').fullCalendar('removeEvents', temp1.id);
+            $('#calendar').fullCalendar('renderEvent', temp1, false);
+        } else {
+            temp1.title = event.title;
+            temp1.start = self.localEventDateParse(event.start);
+            temp1.end = self.localEventDateParse(event.end);
+            temp1.description = event.description;
+            temp1.allDay = event.allDay;
+            temp1.className = event.className;
+            temp1.note = event.note;
+            self.logger(temp1, logAsInfo);
+            $('#calendar').fullCalendar('updateEvent', temp1);
+        }
         try {
             if (temp1.id == self.theItem().id) {
                 self.whileChanged(temp1);
             }
         } catch (e) {
         }
-        self.eventList.push({
-            start: temp1.start,
-            end: temp1.end,
-            id: temp1.id,
-            allDay: temp1.allDay,
-            className: [temp1.className],
-            description: temp1.description,
-            title: temp1.title,
-            note: temp1.note
-        });
+        if (ieEightMinus) {
+            self.eventList.push(temp1[0]);
+        } else {
+            self.eventList.push(temp1);
+        }
     }
 
     self.pushRemoveEvent = function (event) {
@@ -249,6 +278,8 @@ var viewModel = function () {
             } else {
                 self.showError("");
                 var event = theItem;
+                self.theItem(event);
+                self.logger(event, "warning"); self.logger(temper, "warning");
                 if (self.showDelete()) {
                     self.event.server.modifyEvent(event).done(function () {
                         $("#dialogNewEvent").dialog('close');
@@ -264,6 +295,7 @@ var viewModel = function () {
                 }
             }
         }
+        self.logger(event, "info")
     };
 
     self.cancelEvent = function () {
@@ -301,7 +333,7 @@ var viewModel = function () {
         self.logger("Opera: " + isOpera, "info");
         self.logger("Mobile Browser:" + isMobile, "info");
         self.logger("version:" + browserVersionNumber, "info");
-        var editable = !ieEightMinus,
+        var editable = true,
             rightButtons = '',
             defaultView = 'agendaDay',
             ratio = .7,
@@ -344,11 +376,22 @@ var viewModel = function () {
                 }
             },
             eventResize: function (event, dayDelta, minuteDelta, jsEvent, ui, view) {
-                var temper = self.eventList.remove(function (data) {
-                    return data.id == event.id;
-                });
+                if (!ieEightMinus) {
+                    var temper = self.eventList.remove(function (data) {
+                        return data.id == event.id;
+                    });
+                    self.eventList.push(temper[0]);
+                } else {
+                    try {
+                        var temper = self.eventList.remove(function (data) {
+                            return data.id == event.id;
+                        });
+                        self.eventList.push(temper[0]);
+                    } catch (e) {
+
+                    }
+                }
                 var endTemp = self.dropDeltaShift(dayDelta, minuteDelta, event.end);
-                self.eventList.push(temper[0]);
                 self.event.server.modifyEvent({
                     id: event.id,
                     title: event.title,
@@ -367,11 +410,22 @@ var viewModel = function () {
                 //possibly capture the start of a drag, if needed
             },
             eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
-                var temper = self.eventList.remove(function (data) {
-                    return data.id == event.id;
-                });
+                if (!ieEightMinus) {
+                    var temper = self.eventList.remove(function (data) {
+                        return data.id == event.id;
+                    });
+                    self.eventList.push(temper[0]);
+                } else {
+                    try {
+                        var temper = self.eventList.remove(function (data) {
+                            return data.id == event.id;
+                        });
+                        self.eventList.push(temper[0]);
+                    } catch (e) {
+
+                    }
+                }
                 var endTemp = self.dropDeltaShift(dayDelta, minuteDelta, event.end);
-                self.eventList.push(temper[0]);
                 self.event.server.modifyEvent({
                     id: event.id,
                     title: event.title,
@@ -382,6 +436,7 @@ var viewModel = function () {
                     description: event.description,
                     note: event.note
                 }).done(function () {
+
                 }).fail(function (error) {
                     self.logger("Unable to persist the change", "warning");
                     revertFunc();
@@ -394,7 +449,7 @@ var viewModel = function () {
                 }
             },
             dayClick: function (date, allDay, jsEvent, view) {
-                if (!isMobile) {
+                if (!isMobile || !ieEightMinus) {
                     self.showError("");
                     self.userName("");
                     var start = new Date();
@@ -514,9 +569,29 @@ var viewModel = function () {
     };
 
     self.localEventDateParse = function (date) {
-        date = new Date(date);
-        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getDate(),
-            date.getHours(), date.getMinutes(), date.getSeconds());
+        self.logger(date.split('T')[1].split(':')[2].split('-')[1], logAsError);
+        if (!ieEightMinus) {
+            date = new Date(date);
+            self.logger(date, logAsError);
+            return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getDate(),
+                date.getHours(), date.getMinutes(), date.getSeconds());
+        } else {
+            var forParse = date.split('T');
+            var time = {
+                year: forParse[0].split('-')[0],
+                month: forParse[0].split('-')[1],
+                day: forParse[0].split('-')[2],
+                hour: forParse[1].split(':')[0],
+                minute: forParse[1].split(':')[1],
+                seconds: forParse[1].split(':')[2].split('-')[0],
+                offset: forParse[1].split(':')[2].split('-')[1]
+            };
+            self.logger(time, logAsInfo);
+            var theDate = time.year + "-" + time.month + "-" + time.day + "T" + time.hour +
+                ":" + time.minute + ":" + time.seconds + "Z";
+            self.logger(theDate, logAsError);
+            return theDate;
+        }
     };
 
     self.localEventDatePreventShift = function (date) {

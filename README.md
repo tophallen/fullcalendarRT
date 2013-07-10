@@ -6,14 +6,14 @@ with signalR as the real-time framework, built on a MVC site
 
 ### Features
 
-- Full Support for IE9++, Firefox, and Chrome
+- Full Support for IE7++, Firefox, and Chrome
 - Simultaneous event editing handling
 - support for slower connections
 - knockout.js view model
 - unlimited team and group support
 - perfect for teams in an org or individuals in a team
 - also works for individuals within a team within an org
-- viewable but not editable in --IE8 and mobile devices with modern browsers
+- viewable but not editable in mobile devices with modern browsers
 - all data is pushed through hub pipeline in signalr, no webapi or ajax calls
 
 The data is managed and stored in the project with the Entity Framework
