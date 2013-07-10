@@ -10,7 +10,7 @@
     <br />
     <span class="error" data-bind="text: showError"></span><br />
     @{@Html.DropDownList("team", new SelectList(ViewBag.Teams), new { data_bind = "value: selectedTeam, visible: showTeamOption" })}
-    <input type="text" name="userName" id="userName" placeholder="John the smitty Smith" data-bind="value: userName, valueUpdate: 'afterkeydown'" />
+    <input type="text" name="userName" id="userName" placeholder="John the smitty Smith" data-bind="value: userName, valueUpdate: 'afterkeydown', visible:showTitle" />
     <br />
     Shift Type: @Html.DropDownList("shiftType", new SelectList(ViewBag.typeEvent, "Scheduled"), new { data_bind = "value: shiftType" })
     &nbsp; All Day Event? <input type="checkbox" id="allDay" name="allDay" data-bind="checked: allDay" />

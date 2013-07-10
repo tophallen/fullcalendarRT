@@ -45,7 +45,7 @@ namespace Schedule.Web.Hubs
                     }
                     catch (Exception e)
                     {
-                        Clients.Caller.logger(e.Message, "error");
+                        Clients.Caller.logger(e.Message, 2);
                     }
                 }
                 if (data.description != "all")
@@ -63,7 +63,7 @@ namespace Schedule.Web.Hubs
                 }
                 catch (Exception e)
                 {
-                    Clients.Caller.logger(e.Message, "error");
+                    Clients.Caller.logger(e.Message, 2);
                 }
             }
             else
@@ -90,7 +90,7 @@ namespace Schedule.Web.Hubs
                     Clients.Group(data.description + "#" + data.title).newEvent(data);
                 }
                 catch (Exception e) {
-                    Clients.Caller.logger(e.Message, "error");
+                    Clients.Caller.logger(e.Message, 2);
                 }
                 Clients.Group("all").newEvent(data);
             }
@@ -135,7 +135,7 @@ namespace Schedule.Web.Hubs
                         }
                         catch (Exception e)
                         {
-                            Clients.Caller.logger(e.Message, "error");
+                            Clients.Caller.logger(e.Message, 2);
                         }
                     }
                     else
@@ -151,7 +151,7 @@ namespace Schedule.Web.Hubs
                 }
                 catch (Exception e)
                 {
-                    Clients.Caller.logger(e.Message, "error");
+                    Clients.Caller.logger(e.Message, 2);
                 }
             }
             else
@@ -179,7 +179,7 @@ namespace Schedule.Web.Hubs
                         }
                         catch (Exception e)
                         {
-                            Clients.Caller.logger(e.Message, "error");
+                            Clients.Caller.logger(e.Message, 2);
                         }
                     foreach (var item in items)
                     {
@@ -189,26 +189,26 @@ namespace Schedule.Web.Hubs
                 }
                 catch (Exception e)
                 {
-                    Clients.Caller.logger(e.Message, "error");
+                    Clients.Caller.logger(e.Message, 2);
                 }
             }
         }
 
-        public void Logger(string log, string errorType)
+        public void Logger(string log, int errorType)
         {
             Clients.Caller.logger(log, errorType);
         }
 
         async public Task JoinGroup(string Group)
         {
-            Clients.Caller.logger("Connected to Group", "info");
+            Clients.Caller.logger("Connected to Group", 3);
             var id = Context.ConnectionId;
             await Groups.Add(id, Group);
         }
 
         async public Task LeaveGroup(string Group)
         {
-            Clients.Caller.logger("Disconnected from Group", "info");
+            Clients.Caller.logger("Disconnected from Group", 3);
             await Groups.Remove(Context.ConnectionId, Group);
         }
 
@@ -217,13 +217,13 @@ namespace Schedule.Web.Hubs
             var path = Context.Request.Url.AbsolutePath.Split('/');
             var group = path[path.Length - 1];
             Groups.Remove(Context.ConnectionId, group);
-            Clients.Caller.logger("Disconnected from Server", "warn");
+            Clients.Caller.logger("Disconnected from Server", 1);
             return base.OnDisconnected();
         }
 
         public override System.Threading.Tasks.Task OnConnected()
         {
-            Clients.Caller.logger("Connected to Server", "warn");
+            Clients.Caller.logger("Connected to Server", 1);
             return base.OnConnected();
         }
     }
