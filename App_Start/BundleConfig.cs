@@ -25,7 +25,10 @@ namespace Schedule.Web
             bundles.Add(new ScriptBundle("~/js/calendar").Include(
                         "~/js/month/fullcalendar.js"));
 
-            bundles.Add(new ScriptBundle("~/js/data").Include("~/js/month/calendardata.js"));
+            bundles.Add(new ScriptBundle("~/js/data").Include(
+                "~/js/month/calendarinit.js",
+                "~/js/month/calendarfunction.js",
+                "~/js/month/calendardata.js"));
 
             bundles.Add(new ScriptBundle("~/js/signalr").Include(
                         "~/js/libs/jquery.signalR*"));

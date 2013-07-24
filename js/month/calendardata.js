@@ -1,27 +1,4 @@
 ﻿///<reference path="~/js/libs/_references.js" />
-/*********************************/
-/*        Browser Check          */
-/*********************************/
-var opCheck = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0
-var browser = {
-    isOpera: !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0,
-    // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
-    isFirefox: typeof InstallTrigger !== 'undefined',   // Firefox 1.0+
-    isSafari: Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0,
-    // At least Safari 3+: "[object HTMLElementConstructor]"
-    isChrome: !!window.chrome && !opCheck, // Chrome 1+
-    isIE: /*@cc_on!@*/false || document.documentMode  // At least IE6
-}
-if (typeof browser.isIE == 'undefined') { browser.isIE = false; }
-if (!browser.isChrome) {
-    $("#endDate").attr('data-bind', 'value: legacyEndDate');
-    $("#endTime").attr('data-bind', 'value: legacyEndTime');
-    $("#startDate").attr('data-bind', 'value: legacyStartDate');
-    $("#startTime").attr('data-bind', 'value: legacyStartTime');
-}
-
-//logging types enum for self.logger();
-var logAs = { Warning: 1, Error: 2, Info: 3, Debug: 4, Log: 5 };
 
 /*********************************/
 /*      Knockout ViewModel       */
@@ -71,34 +48,8 @@ var viewModel = function () {
         }
     };
 
-    //dialogs to be called after jQuery is loaded up, but before the whole page has rendered, to activate
-    //but hide them immediately
-    self.newEventTrigger = function () {
-        $("#dialogNewEvent").dialog({
-            title: "",
-            autoOpen: false,
-            modal: true,
-            width: 475,
-            draggable: true,
-            resizable: true
-        }).dialog("widget").find(".ui-dialog-title").hide();
-        $("#pickTeam").dialog({
-            title: "Pick Team:",
-            autoOpen: false,
-            modal: true,
-            draggable: true,
-            resizable: true,
-            buttons: {
-                "Pick Team": function () {
-                    window.location.pathname = '/' + self.redirectTeam();
-                    $(this).dialog('close');
-                }
-            }
-        });
-    }();
     //variable declaration for viewModel
     self.showError = ko.observable("");
-    self.repeatCount = ko.observable(1);
     self.theItem = ko.observable();
     self.userName = ko.observable();
     self.shiftType = ko.observable();
@@ -121,8 +72,7 @@ var viewModel = function () {
     self.selectedNotes = ko.observable();
     self.showTitle = ko.observable(true);
     self.titleFromHash = ko.observable("");
-
-    //for not chrome browsers as chrome supports hand datetime-local inputs
+    self.ratio = ko.observable(.7);
     self.legacyStartDate = ko.observable();
     self.legacyStartTime = ko.observable();
     self.legacyEndDate = ko.observable();
@@ -162,8 +112,8 @@ var viewModel = function () {
         var temp1 = temp[0];
         if (ieEightMinus) {
             temp1.title = event.title;
-            temp1.start = self.localEventDateParse(event.start);
-            temp1.end = self.localEventDateParse(event.end);
+            temp1.start = localEventDateParse(event.start);
+            temp1.end = localEventDateParse(event.end);
             temp1.description = event.description;
             temp1.allDay = event.allDay;
             temp1.className = event.className;
@@ -173,8 +123,8 @@ var viewModel = function () {
             $('#calendar').fullCalendar('renderEvent', temp1, false);
         } else {
             temp1.title = event.title;
-            temp1.start = self.localEventDateParse(event.start);
-            temp1.end = self.localEventDateParse(event.end);
+            temp1.start = localEventDateParse(event.start);
+            temp1.end = localEventDateParse(event.end);
             temp1.description = event.description;
             temp1.allDay = event.allDay;
             temp1.className = event.className;
@@ -197,7 +147,14 @@ var viewModel = function () {
 
     //for removing events from the calendar
     self.pushRemoveEvent = function (event) {
-        self.eventList.remove(function (data) { return data.id == event.id; });
+        if (ieEightMinus) {
+            try {
+                self.eventList.remove(function (data) { return data.id == event.id; });
+            }
+            catch (e) { }
+        } else {
+            self.eventList.remove(function (data) { return data.id == event.id; });
+        }
         $("#calendar").fullCalendar('removeEvents', function (data) { return data.id == event.id; })
     }
 
@@ -208,12 +165,8 @@ var viewModel = function () {
         self.theItem(event);
         self.userName(event.title);
         self.shiftType(event.className[0]);
-        if (browser.isChrome) {
-            self.shiftStartTime(self.htmlInputDate(event.start));
-        } else {
-            self.legacyStartDate(self.dateSplitter(event.start));
-            self.legacyStartTime(self.timeSplitter(event.start));
-        }
+        self.legacyStartDate(dateSplitter(event.start));
+        self.legacyStartTime(timeSplitter(event.start));
         self.selectedTeam(event.description);
         self.selectedNotes(event.note);
         try {
@@ -221,12 +174,8 @@ var viewModel = function () {
         } catch (e) {
         }
         try {
-            if (browser.isChrome) {
-                self.shiftEndTime(self.htmlInputDate(event.end));
-            } else {
-                self.legacyEndDate(self.dateSplitter(event.end));
-                self.legacyEndTime(self.timeSplitter(event.end));
-            }
+            self.legacyEndDate(dateSplitter(event.end));
+            self.legacyEndTime(timeSplitter(event.end));
         } catch (e) {
             // no end date, we can live with that ... for now
         }
@@ -238,13 +187,8 @@ var viewModel = function () {
     self.submitEvent = function () {
         var tempstart;
         var tempend;
-        if (browser.isChrome) {
-            tempstart = self.localEventDatePreventShift(self.shiftStartTime());
-            tempend = self.localEventDatePreventShift(self.shiftEndTime());
-        } else {
-            tempstart = self.dateCombiner(self.legacyStartDate(), self.legacyStartTime());
-            tempend = self.dateCombiner(self.legacyEndDate(), self.legacyEndTime());
-        }
+            tempstart = dateCombiner(self.legacyStartDate(), self.legacyStartTime());
+            tempend = dateCombiner(self.legacyEndDate(), self.legacyEndTime());
         var theItem = {
             start: tempstart,
             end: tempend,
@@ -284,7 +228,7 @@ var viewModel = function () {
         temper.title = self.userName();
         if (self.userName().length <= 1) { self.showError("What's the name of it?"); }
         else {
-            if (!self.validateTimes(tempstart, tempend)) {
+            if (validateTimes(tempstart, tempend)) {
                 self.showError("Your dates are a little odd...");
             } else {
                 self.showError("");
@@ -306,7 +250,6 @@ var viewModel = function () {
                 }
             }
         }
-        self.logger(event, logAs.Info)
     };
 
     //for non-commitally leaving the dialog to edit or create an event.
@@ -329,7 +272,7 @@ var viewModel = function () {
             note: event.note
         }).done(function () {
         }).fail(function (error) {
-            console.log("Error my friend");
+            console.error("Error my friend");
         });
         $("#dialogNewEvent").dialog('close');
     };
@@ -338,16 +281,13 @@ var viewModel = function () {
     /*          The Calendar         */
     /*********************************/
 
-    //to be performed onReady, so that the calendar can be live as soon as possible
     // see the fullCalendar documentation if you want to know what is being done here
     $(document).ready(function () {
+        window.onresize = function () {
+            var val = (window.outerWidth / window.outerHeight) * 1.35;
+            $('#calendar').fullCalendar('option', 'aspectRatio', val);
+        };
         var date = new Date();
-        self.logger("Chrome: " + browser.isChrome, logAs.Info);
-        self.logger("Firefox: " + browser.isFirefox, logAs.Info);
-        self.logger("IE: " + browser.isIE, logAs.Info);
-        self.logger("Opera: " + browser.isOpera, logAs.Info);
-        self.logger("Mobile Browser:" + isMobile, logAs.Info);
-        self.logger("version:" + browserVersionNumber, logAs.Info);
         var editable = true,
             rightButtons = '',
             defaultView = 'agendaDay',
@@ -357,7 +297,6 @@ var viewModel = function () {
         if (!isMobile) {
             rightButtons = 'month,agendaWeek,agendaDay';
             defaultView = 'month';
-            ratio = 2;
         } else { editable = false; dayForm = 'MMM d, yyyy'; rightButtons = 'today'; menuOpt = 'prev,next'; }
         var d = date.getDate();
         var m = date.getMonth();
@@ -376,7 +315,7 @@ var viewModel = function () {
             defaultView: defaultView,
             editable: editable,
             weekMode: 'liquid',
-            aspectRatio: ratio,
+            aspectRatio: (window.outerWidth / window.outerHeight) * 1.35,
             timeFormat: {
                 '': 'H(:mm){ - H(:mm)}'
             },
@@ -407,7 +346,6 @@ var viewModel = function () {
 
                     }
                 }
-                var endTemp = self.dropDeltaShift(dayDelta, minuteDelta, event.end);
                 self.event.server.modifyEvent({
                     id: event.id,
                     title: event.title,
@@ -461,7 +399,7 @@ var viewModel = function () {
                 }
             },
             dayClick: function (date, allDay, jsEvent, view) {
-                if (!isMobile || !ieEightMinus) {
+                if (!isMobile) {
                     self.showError("");
                     if (self.showTitle()) {
                         self.userName("");
@@ -478,21 +416,15 @@ var viewModel = function () {
                         start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), 0);
                         end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 1, date.getMinutes(), 0);
                     }
-                    if (browser.isChrome) {
-                        self.shiftStartTime(self.htmlInputDate(start));
-                        self.shiftEndTime(self.htmlInputDate(end));
-                    } else {
-                        self.legacyStartDate(self.dateSplitter(start));
-                        self.legacyStartTime(self.timeSplitter(start));
-                        self.legacyEndDate(self.dateSplitter(end));
-                        self.legacyEndTime(self.timeSplitter(end));
-                    }
+                    self.legacyStartDate(dateSplitter(start));
+                    self.legacyStartTime(timeSplitter(start));
+                    self.legacyEndDate(dateSplitter(end));
+                    self.legacyEndTime(timeSplitter(end));
                     self.showDelete(false);
                     self.allDay(allDay);
                     if (self.groupName() != "all") {
                         self.selectedTeam(self.groupName().split('#')[0]);
                     }
-                    self.repeatCount(getRepeats(null));
                     self.addButtonValue("Create");
                     self.dialogTitle("New Event.");
                     $("#dialogNewEvent").dialog("open");
@@ -503,12 +435,8 @@ var viewModel = function () {
                 self.theItem(calEvent);
                 self.userName(calEvent.title);
                 self.shiftType(calEvent.className[0]);
-                if (browser.isChrome) {
-                    self.shiftStartTime(self.htmlInputDate(calEvent.start));
-                } else {
-                    self.legacyStartDate(self.dateSplitter(calEvent.start));
-                    self.legacyStartTime(self.timeSplitter(calEvent.start));
-                }
+                self.legacyStartDate(dateSplitter(calEvent.start));
+                self.legacyStartTime(timeSplitter(calEvent.start));
                 self.selectedNotes(calEvent.note);
                 self.selectedTeam(calEvent.description);
                 try {
@@ -516,12 +444,8 @@ var viewModel = function () {
                 } catch (e) {
                 }
                 try {
-                    if (browser.isChrome) {
-                        self.shiftEndTime(self.htmlInputDate(calEvent.end));
-                    } else {
-                        self.legacyEndDate(self.dateSplitter(calEvent.end));
-                        self.legacyEndTime(self.timeSplitter(calEvent.end));
-                    }
+                    self.legacyEndDate(dateSplitter(calEvent.end));
+                    self.legacyEndTime(timeSplitter(calEvent.end));
                 } catch (e) {
                     // no end date, we can live with that ... for now
                 }
@@ -533,120 +457,6 @@ var viewModel = function () {
         });
 
     });
-
-    /*********************************/
-    /*     Date Parsing/Handlers     */
-    /*********************************/
-    self.validateTimes = function (startDate, endDate) {
-        var startTime = new Date(startDate).valueOf();
-        var endTime = new Date(endDate).valueOf();
-        if (startTime >= endTime) { return false; }
-        else { return true; }
-    };
-    self.htmlInputDate = function (date) {
-        var day = date.getDate(),
-            themonth = date.getMonth(),
-            theyear = date.getFullYear(),
-            hourItem = self.checkTimeParsing(date.getHours()),
-            dayItem = self.checkTimeParsing(parseInt(day)),
-            monthItem = self.checkTimeParsing(parseInt(themonth) + 1),
-            minutes = self.checkTimeParsing(date.getMinutes());
-        return theyear + "-" + monthItem.toString() + "-" + dayItem.toString() + "T" +
-            hourItem.toString() + ":" + minutes.toString() + ":00";
-    }
-
-    //self.dropDeltaShift = function (deltaDay, deltaMinute, date) {
-    //    try {
-    //        var hold = new Date(date);
-    //        var parse = new Date(hold.getUTCFullYear(), hold.getUTCMonth(), hold.getUTCDate() + deltaDay,
-    //            hold.getHours(), hold.getMinutes() + deltaMinute, hold.getSeconds());
-    //        return parse;
-    //    } catch (e) {
-    //        return null;
-    //    }
-    //};
-
-    self.dateSplitter = function (date) {
-        date = new Date(date);
-        var month = date.getMonth() + 1;
-        return month + "/" + date.getDate() + "/" + date.getFullYear();
-    };
-
-    self.timeSplitter = function (date) {
-        date = new Date(date);
-        return date.getHours() + ":" + self.checkTimeParsing(date.getMinutes());
-    };
-
-    self.dateCombiner = function (date, time) {
-        var mdy = date.split('/'),
-            hm = time.split(':');
-        self.logger(new Date(mdy[2], mdy[0], mdy[1], hm[0], hm[1], 0).toDateString(), logAs.Info);
-        return new Date(mdy[2], mdy[0] - 1, mdy[1], hm[0], hm[1], 0);
-    };
-
-    self.localEventDateParse = function (date) {
-        self.logger(date.split('T')[1].split(':')[2].split('-')[1], logAs.Info);
-        if (!ieEightMinus) {
-            date = new Date(date);
-            self.logger(date, logAs.Info);
-            return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getDate(),
-                date.getHours(), date.getMinutes(), date.getSeconds());
-        } else {
-            //! - <= IE8 fix
-            var forParse = date.split('T');
-            var time = {
-                year: forParse[0].split('-')[0],
-                month: forParse[0].split('-')[1],
-                day: forParse[0].split('-')[2],
-                hour: forParse[1].split(':')[0],
-                minute: forParse[1].split(':')[1],
-                seconds: forParse[1].split(':')[2].split('-')[0],
-                offset: forParse[1].split(':')[2].split('-')[1]
-            };
-            self.logger(time, logAs.Info);
-            var theDate = time.year + "-" + time.month + "-" + time.day + "T" + time.hour +
-                ":" + time.minute + ":" + time.seconds + "Z";
-            self.logger(theDate, logAs.Info);
-            return theDate;
-        }
-    };
-
-    self.localEventDatePreventShift = function (date) {
-        date = new Date(date);
-        var offset = date.getTimezoneOffset() / 60;
-        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
-            date.getHours() + offset, date.getMinutes(), date.getSeconds());
-    };
-
-    self.localEventDateRepeat = function (date) {
-        date = new Date(date);
-        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 7,
-            date.getHours(), date.getMinutes(), date.getSeconds()).toUTCString();
-    };
-
-    self.checkTimeParsing = function (i) {
-        return (i < 10 ? '0' : '') + i;
-    }
-
-    function getRepeats(event) {
-        var count = 1;
-        for (var i = 0; i < self.eventList().length; i++) {
-            try {
-                if (self.eventList()[i].id == event.id && typeof self.eventList()[i].id !== 'undefined') {
-                    count++;
-                }
-            } catch (e) {
-            }
-        }
-        if (count > 1) { count--; }
-        return count;
-    }
-
-    self.loadWorkTypes = function () {
-        $("#shiftType option").each(function () {
-            self.workTypeCollection().push($(this).val());
-        });
-    }();
 
     /*********************************/
     /*      SignalR Initializer      */

@@ -17,22 +17,12 @@
     <br /><span style="height:50px; text-align:center; vertical-align:central;">Notes: &nbsp;</span>
     @Html.TextArea("notes", new { style= "width:275px; height:50px; ", data_bind = "value: selectedNotes, valueUpdate: 'afterkeydown'" })
     <br />
-    @if (!Request.UserAgent.Contains("Chrome"))
-    {
     <div>Start: @Html.Editor("startDate", "Date")
         @Html.Editor("startTime", "Time")
     <br />
     End: &nbsp; @Html.Editor("endDate", "Date")
         @Html.Editor("endTime", "Time")
     </div>
-    }
-    else
-    {
-    <div>Start: <input type="datetime-local" name="startTime" id="startTime" data-bind="value: shiftStartTime" />
-    <br />
-    End: &nbsp; <input type="datetime-local" name="endTime" id="endTime" data-bind="value: shiftEndTime" /></div>
-    }
-    <br />
     <input type="button" value="Add" id="addEvent" name="addEvent" data-bind="click: submitEvent, attr: { value: addButtonValue }" />
     <input type="button" value="Cancel" id="cancelEvent" name="cancelEvent" data-bind="click: cancelEvent" />
     <input type="button" value="Delete" id="deleteEvent" name="deleteEvent" data-bind="click: deleteEvent, visible: showDelete" />
