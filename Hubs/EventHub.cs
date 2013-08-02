@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.AspNet.SignalR;
 using System.Threading.Tasks;
 using Schedule.Web.Models;
+using System.Collections.Generic;
 
 namespace Schedule.Web.Hubs
 {
@@ -116,12 +117,20 @@ namespace Schedule.Web.Hubs
                 try
                 {
                     IQueryable<CalEvent> items;
+                    IQueryable<CalEvent> LongItems;
+                    IQueryable<CalEvent> Ongoing;
                     IQueryable<CalEvent> broadcastItems;
                     if (dateInfo.team != "all")
                     {
                         items = _db.Shifts.Where(c => c.TeamName == dateInfo.team
                             && c.StartTime >= dateInfo.start
                             && c.StartTime <= dateInfo.end);
+                        LongItems = _db.Shifts.Where(c => c.TeamName == dateInfo.team
+                            && c.EndTime >= dateInfo.start
+                            && c.EndTime <= dateInfo.end);
+                        Ongoing = _db.Shifts.Where(c => c.TeamName == dateInfo.team
+                            && c.StartTime <= dateInfo.start
+                            && c.EndTime >= dateInfo.end);
                         try
                         {
                             broadcastItems = _db.Shifts.Where(c => c.TeamName == "all"
@@ -142,8 +151,23 @@ namespace Schedule.Web.Hubs
                     {
                         items = _db.Shifts.Where(c => c.StartTime >= dateInfo.start
                             && c.StartTime <= dateInfo.end);
+                        LongItems = _db.Shifts.Where(c => c.EndTime >= dateInfo.start
+                            && c.EndTime <= dateInfo.end);
+                        Ongoing = _db.Shifts.Where(c => c.StartTime <= dateInfo.start
+                            && c.EndTime >= dateInfo.end);
                     }
-                    foreach (var item in items)
+                    var AllItems =  items.ToList();
+                    foreach (var item in LongItems)
+                    {
+                        if (!AllItems.Contains(item))
+                            AllItems.Add(item);
+                    }
+                    foreach (var item in Ongoing)
+                    {
+                        if (!AllItems.Contains(item))
+                            AllItems.Add(item);
+                    }
+                    foreach (var item in AllItems)
                     {
                         var data = CalendarEvent.FromDatabase(item);
                         Clients.Caller.newEvent(data);
@@ -161,11 +185,21 @@ namespace Schedule.Web.Hubs
                 try
                 {
                     IQueryable<CalEvent> items;
+                    IQueryable<CalEvent> LongItems;
+                    IQueryable<CalEvent> Ongoing;
                     IQueryable<CalEvent> broadcastItems;
                         items = _db.Shifts.Where(c => c.EmployeeName == hash 
                             && c.TeamName == team
                             && c.StartTime >= dateInfo.start
                             && c.StartTime <= dateInfo.end);
+                    LongItems = _db.Shifts.Where(c => c.EmployeeName == hash
+                            && c.TeamName == team
+                            && c.EndTime >= dateInfo.start
+                            && c.EndTime <= dateInfo.end);
+                    Ongoing = _db.Shifts.Where(c => c.EmployeeName == hash
+                            && c.TeamName == dateInfo.team
+                            && c.StartTime <= dateInfo.start
+                            && c.EndTime >= dateInfo.end);
                         try
                         {
                             broadcastItems = _db.Shifts.Where(c => c.TeamName == "all"
@@ -181,11 +215,22 @@ namespace Schedule.Web.Hubs
                         {
                             Clients.Caller.logger(e.Message, 2);
                         }
-                    foreach (var item in items)
-                    {
-                        var data = CalendarEvent.FromDatabase(item);
-                        Clients.Caller.newEvent(data);
-                    }
+                        var AllItems = items.ToList();
+                        foreach (var item in LongItems)
+                        {
+                            if (!AllItems.Contains(item))
+                                AllItems.Add(item);
+                        }
+                        foreach (var item in Ongoing)
+                        {
+                            if (!AllItems.Contains(item))
+                                AllItems.Add(item);
+                        }
+                        foreach (var item in AllItems)
+                        {
+                            var data = CalendarEvent.FromDatabase(item);
+                            Clients.Caller.newEvent(data);
+                        }
                 }
                 catch (Exception e)
                 {

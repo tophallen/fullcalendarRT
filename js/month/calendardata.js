@@ -5,9 +5,37 @@
 /*********************************/
 var viewModel = function () {
     var self = this;
-
     // enable logging here or override with '?debug=true' in url
     self.enableLogging = ko.observable(false);
+    //variable declaration for viewModel
+    self.showError = ko.observable("");
+    self.theItem = ko.observable();
+    self.userName = ko.observable();
+    self.shiftType = ko.observable();
+    self.shiftStartTime = ko.observable();
+    self.shiftEndTime = ko.observable();
+    self.showDelete = ko.observable(false);
+    self.dialogTitle = ko.observable("Create a New Event.");
+    self.addButtonValue = ko.observable("Create");
+    self.workTypeCollection = ko.observableArray();
+    self.allDay = ko.observable(false);
+    self.theItem = ko.observable();
+    self.showTeamOption = ko.observable(false);
+    self.selectedTeam = ko.observable();
+    self.isLive = ko.observable(false);
+    self.event = "";
+    self.calendar = "";
+    self.calendarHolder = ko.observableArray([]);
+    self.redirectTeam = ko.observable();
+    self.eventList = ko.observableArray([]);
+    self.selectedNotes = ko.observable();
+    self.showTitle = ko.observable(true);
+    self.titleFromHash = ko.observable("");
+    self.ratio = ko.observable(.7);
+    self.legacyStartDate = ko.observable();
+    self.legacyStartTime = ko.observable();
+    self.legacyEndDate = ko.observable();
+    self.legacyEndTime = ko.observable();
     
     // the logger can take any object and put it into a JSON string for debugging in any browser 
     //(IE, has trouble with logging objects and functions) and a second param is a number representing
@@ -48,49 +76,21 @@ var viewModel = function () {
         }
     };
 
-    //variable declaration for viewModel
-    self.showError = ko.observable("");
-    self.theItem = ko.observable();
-    self.userName = ko.observable();
-    self.shiftType = ko.observable();
-    self.shiftStartTime = ko.observable();
-    self.shiftEndTime = ko.observable();
-    self.showDelete = ko.observable(false);
-    self.dialogTitle = ko.observable("Create a New Event.");
-    self.addButtonValue = ko.observable("Create");
-    self.workTypeCollection = ko.observableArray();
-    self.allDay = ko.observable(false);
-    self.theItem = ko.observable();
-    self.showTeamOption = ko.observable(false);
-    self.selectedTeam = ko.observable();
-    self.isLive = ko.observable(false);
-    self.event = "";
-    self.calendar = "";
-    self.calendarHolder = ko.observableArray([]);
-    self.redirectTeam = ko.observable();
-    self.eventList = ko.observableArray([]);
-    self.selectedNotes = ko.observable();
-    self.showTitle = ko.observable(true);
-    self.titleFromHash = ko.observable("");
-    self.ratio = ko.observable(.7);
-    self.legacyStartDate = ko.observable();
-    self.legacyStartTime = ko.observable();
-    self.legacyEndDate = ko.observable();
-    self.legacyEndTime = ko.observable();
-
     /*********************************/
     /*        Event Handling         */
     /*********************************/
 
     //for new events, this will push the event to the calendar UI
     self.pushEvents = function (event) {
+        event = makeUniversalTime(event);
+        self.logger(event, logAs.Info);
         self.eventList.push(event);
         $('#calendar').fullCalendar('renderEvent', event, false);
     };
 
     //for events already in the calendar, this will grab the old item and update it
     self.pushModifyEvent = function (event) {
-        self.logger(event, logAs.Error);
+        //self.logger(event, logAs.Error);
         if (!ieEightMinus) {
             var temper = self.eventList.remove(function (data) {
                 return data.id == event.id;
@@ -104,7 +104,7 @@ var viewModel = function () {
                 var temper = self.theItem();
             }
         }
-        self.logger(temper, logAs.Warning);
+        //self.logger(temper, logAs.Warning);
         var temp = $("#calendar").fullCalendar('clientEvents', function (data) {
             return data.id == event.id;
         });
@@ -112,24 +112,26 @@ var viewModel = function () {
         var temp1 = temp[0];
         if (ieEightMinus) {
             temp1.title = event.title;
-            temp1.start = localEventDateParse(event.start);
-            temp1.end = localEventDateParse(event.end);
+            temp1.start = event.start;
+            temp1.end = event.end;
             temp1.description = event.description;
             temp1.allDay = event.allDay;
             temp1.className = event.className;
             temp1.note = event.note;
-            self.logger(temp1, logAs.Info);
+            self.logger(temp1.start, logAs.Info);
             $('#calendar').fullCalendar('removeEvents', temp1.id);
             $('#calendar').fullCalendar('renderEvent', temp1, false);
+            self.logger($("#calendar").fullCalendar('clientEvents', function (data) {
+                return data.id == event.id;
+            }), logAs.Info);
         } else {
             temp1.title = event.title;
-            temp1.start = localEventDateParse(event.start);
-            temp1.end = localEventDateParse(event.end);
+            temp1.start = event.start;
+            temp1.end = event.end;
             temp1.description = event.description;
             temp1.allDay = event.allDay;
             temp1.className = event.className;
             temp1.note = event.note;
-            self.logger(temp1, logAs.Info);
             $('#calendar').fullCalendar('updateEvent', temp1);
         }
         try {
@@ -234,7 +236,7 @@ var viewModel = function () {
                 self.showError("");
                 var event = theItem;
                 self.theItem(event);
-                self.logger(event, logAs.Log);
+                //self.logger(event, logAs.Log);
                 if (self.showDelete()) {
                     self.event.server.modifyEvent(event).done(function () {
                         $("#dialogNewEvent").dialog('close');
@@ -284,26 +286,31 @@ var viewModel = function () {
     // see the fullCalendar documentation if you want to know what is being done here
     $(document).ready(function () {
         window.onresize = function () {
-            var val = (window.outerWidth / window.outerHeight) * 1.35;
+            if (!ieEightMinus) {
+                var val = (window.outerWidth / window.outerHeight) * 1.35;
+            } else {
+                var val = 2.0;
+            }
             $('#calendar').fullCalendar('option', 'aspectRatio', val);
         };
         var date = new Date();
         var editable = true,
             rightButtons = '',
             defaultView = 'agendaDay',
-            ratio = .7,
             dayForm = 'dddd, MMM d, yyyy',
             menuOpt = 'prev,next today';
+            ratio = .7;
         if (!isMobile) {
             rightButtons = 'month,agendaWeek,agendaDay';
             defaultView = 'month';
-        } else { editable = false; dayForm = 'MMM d, yyyy'; rightButtons = 'today'; menuOpt = 'prev,next'; }
+            ratio = (window.outerWidth / window.outerHeight) * 1.35;
+        } else { editable = false; dayForm = 'MMM d, yyyy'; rightButtons = 'today'; menuOpt = 'prev,next'; ratio = .7 }
         var d = date.getDate();
         var m = date.getMonth();
         var y = date.getFullYear();
 
         self.calendar = $('#calendar').fullCalendar({
-            theme: true,
+            theme: false,
             header: {
                 left: menuOpt,
                 center: 'title',
@@ -312,10 +319,11 @@ var viewModel = function () {
             titleFormat: {
                 day: dayForm
             },
+            ignoreTimezone: false,
             defaultView: defaultView,
             editable: editable,
             weekMode: 'liquid',
-            aspectRatio: (window.outerWidth / window.outerHeight) * 1.35,
+            aspectRatio: ratio,
             timeFormat: {
                 '': 'H(:mm){ - H(:mm)}'
             },

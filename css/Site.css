@@ -1,5 +1,5 @@
 ﻿html {
-    background-color: white;
+    background-color: #FFF;
     margin: 0;
     padding: 0;
     max-height:100%;
@@ -32,7 +32,7 @@ a {
     }
 
     a:hover {
-        background-color: #c7d1d6;
+        background-color: #0094ff;
     }
 
 header, footer, hgroup,
@@ -124,7 +124,7 @@ header .content-wrapper {
 
 footer {
     clear: both;
-    background-color: whitesmoke;
+    background-color: #FFF;
     font-size: .8em;
     height: 10px;
 }
@@ -457,7 +457,7 @@ input[type="submit"],
 input[type="button"],
 button {
     background-color: #d3dce0;
-    border: 1px solid #787878;
+    border: 1px solid #FFFFFF;
     cursor: pointer;
     font-size: 1.2em;
     font-weight: 600;

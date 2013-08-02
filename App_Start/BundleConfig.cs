@@ -42,7 +42,6 @@ namespace Schedule.Web
 
             bundles.Add(new StyleBundle("~/css/calendar").Include(
                 "~/css/month/fullcalendar.css",
-                "~/css/month/theme.css",
                 "~/css/month/eventTypes.css"));
 
             bundles.Add(new StyleBundle("~/Content/themes/base/css").Include(

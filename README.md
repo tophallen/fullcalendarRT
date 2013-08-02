@@ -11,8 +11,8 @@ with signalR as the real-time framework, built on a MVC site
 - support for slower connections
 - knockout.js view model
 - unlimited team and group support
-- perfect for teams in an org or individuals in a team
-- also works for individuals within a team within an org
+- perfect for teams in an org and individuals in a team
+- support for multiple timezones
 - viewable but not editable in mobile devices with modern browsers
 - all data is pushed through hub pipeline in signalr, no webapi or ajax calls
 

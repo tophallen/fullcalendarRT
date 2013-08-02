@@ -4,15 +4,15 @@
 /*********************************/
 var opCheck = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0
 var browser = {
-    isOpera: !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0,
-    // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+    isOpera: opCheck,                                   // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
     isFirefox: typeof InstallTrigger !== 'undefined',   // Firefox 1.0+
     isSafari: Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0,
-    // At least Safari 3+: "[object HTMLElementConstructor]"
-    isChrome: !!window.chrome && !opCheck, // Chrome 1+
-    isIE: /*@cc_on!@*/false || document.documentMode  // At least IE6
+                                                        // At least Safari 3+: "[object HTMLElementConstructor]"
+    isChrome: !!window.chrome && !opCheck,              // Chrome 1+
+    isIE: /*@cc_on!@*/false || document.documentMode    // At least IE6
 }
 if (typeof browser.isIE == 'undefined') { browser.isIE = false; }
+
 $("#endDate").attr('data-bind', 'value: legacyEndDate');
 $("#endTime").attr('data-bind', 'value: legacyEndTime');
 $("#startDate").attr('data-bind', 'value: legacyStartDate');
@@ -29,9 +29,11 @@ $(function initDialogs() {
         width: 475,
         draggable: true,
         resizable: true
-    }).dialog("widget").find(".ui-dialog-title").hide();
+    });
     $("#pickTeam").dialog({
-        title: "Pick Team:",
+        title: "",
+        height: 150,
+        width:150,
         autoOpen: false,
         modal: true,
         draggable: true,
