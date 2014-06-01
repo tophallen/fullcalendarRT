@@ -32,8 +32,6 @@ users or specific projects within the same team
 I built this as a team calendar at work, we just needed a simple scheduler, and with the way it scales
 for different teams, it is just what we wanted.
 
-I have a demo set up for this
-- [http://calendar.tophallen.com] (http://calendar.tophallen.com)
 
 to enable browser-side logging:
 in ~/js/month/calendardata.js set `self.enableLogging = ko.observable(true);` (it's at line 9) or you can
